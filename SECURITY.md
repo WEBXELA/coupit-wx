@@ -36,4 +36,18 @@ To help maintain the security of this project, we recommend following these best
 
 If you have any questions or concerns about the security of this project, please contact our security team at [security@coupit.com](mailto:security@coupit.com).
 
+## New Security Practices
+
+We have recently updated our security practices to enhance the security of this project. Please take note of the following changes:
+
+1. **Regular Security Audits**: We conduct regular security audits to identify and address potential vulnerabilities in the codebase. These audits are performed by both internal and external security experts.
+
+2. **Security Training**: All contributors are required to undergo security training to ensure they are aware of the latest security best practices and guidelines. This training is conducted periodically to keep contributors up to date with evolving security threats.
+
+3. **Bug Bounty Program**: We have implemented a bug bounty program to encourage security researchers to report vulnerabilities. Participants in the program are rewarded for their efforts in identifying and responsibly disclosing security issues.
+
+4. **Secure Development Lifecycle (SDL)**: We follow a secure development lifecycle (SDL) process to integrate security into every stage of the software development process. This includes threat modeling, secure coding practices, and security testing.
+
+5. **Incident Response Plan**: We have established an incident response plan to handle security incidents effectively. This plan outlines the steps to be taken in the event of a security breach, including communication protocols, containment measures, and post-incident analysis.
+
 Thank you for helping us maintain the security and integrity of this project.
