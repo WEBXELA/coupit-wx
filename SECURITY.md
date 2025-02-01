@@ -6,7 +6,7 @@ If you discover a security vulnerability within this project, please follow the 
 
 1. **Do not disclose the vulnerability publicly**: Please refrain from discussing or sharing the vulnerability in public forums, social media, or any other public channels.
 
-2. **Contact us directly**: Send an email to our security team at [security@coupit.com](mailto:security@coupit.com) with the following details:
+2. **Contact us directly**: Send an email to our security team at [security@coupit.ai](mailto:security@coupit.ai) with the following details:
    - A description of the vulnerability
    - Steps to reproduce the vulnerability
    - Any potential impact or risk associated with the vulnerability
@@ -34,7 +34,7 @@ To help maintain the security of this project, we recommend following these best
 
 ## Contact Information
 
-If you have any questions or concerns about the security of this project, please contact our security team at [security@coupit.com](mailto:security@coupit.com).
+If you have any questions or concerns about the security of this project, please contact our security team at [security@coupit.ai](mailto:security@coupit.ai).
 
 ## New Security Practices
 

@@ -44,6 +44,6 @@ Once the development server is running, you can access the application in your b
 
 For support and inquiries, please contact us at:
 
-- **Email**: [contact@coupit.com](mailto:contact@coupit.com)
+- **Email**: [contact@coupit.ai](mailto:contact@coupit.ai)
 - **Phone**: +44 7535 499519
 - **Address**: UK
