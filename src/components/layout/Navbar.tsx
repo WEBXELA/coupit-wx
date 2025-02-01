@@ -11,7 +11,7 @@ export function Navbar() {
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
             <Target className="w-8 h-8 text-[#62d84e]" />
-            <span className="text-2xl font-bold text-[#002131]">Coupit - AI-Powered Retail Solutions</span>
+            <span className="text-2xl font-bold text-[#002131]">Coupit.</span>
           </Link>
           
           {/* Desktop Navigation */}
