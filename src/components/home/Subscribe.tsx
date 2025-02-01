@@ -50,9 +50,9 @@ export function Subscribe() {
       <div className="max-w-6xl mx-auto relative">
         <div className="bg-white p-12 rounded-2xl shadow-lg">
           <div className="text-center mb-12">
-            <h2 className="heading text-[#002131]">Stay Updated</h2>
+            <h2 className="heading text-[#002131]">Stay Updated with Coupit's AI-Powered Retail Solutions</h2>
             <p className="subheading text-gray-600 max-w-2xl mx-auto">
-              Subscribe to our newsletter for the latest updates, exclusive offers, and industry insights.
+              Subscribe to our newsletter for the latest updates, exclusive offers, and industry insights on AI-powered retail solutions.
             </p>
           </div>
 

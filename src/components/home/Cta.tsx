@@ -7,7 +7,7 @@ export function Cta() {
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="heading text-[#002131]">The Future of In-Store Engagement Starts Here</h2>
         <p className="subheading text-[#002131]/80 max-w-2xl mx-auto">
-         Transform the way you connect. Let's redefine retail—together
+          Transform the way you connect. Let's redefine retail—together with AI-powered retail solutions.
         </p>
         <div className="flex flex-wrap justify-center gap-4">
           <button className="bg-[#002131] text-white px-8 py-3 rounded-full font-semibold 

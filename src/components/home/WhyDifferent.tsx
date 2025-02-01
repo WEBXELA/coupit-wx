@@ -8,7 +8,7 @@ export function WhyDifferent() {
         <div className="text-center mb-16">
           <h2 className="heading text-[#002131]">What Makes Coupit Different</h2>
           <p className="subheading text-gray-600 max-w-2xl mx-auto">
-            Innovation meets results in every interaction
+            Innovation meets results in every interaction with our AI-powered retail solutions.
           </p>
         </div>
         
@@ -18,19 +18,19 @@ export function WhyDifferent() {
               icon: <Rocket className="w-12 h-12 text-[#62d84e]" />,
               title: "AI-Driven Precision",
               subtitle: "Smarter insights. Better outcomes.",
-              description: "Our AI technology learns and adapts to your unique business needs, delivering personalized solutions that drive real results."
+              description: "Our AI technology learns and adapts to your unique business needs, delivering personalized solutions that drive real results in retail."
             },
             {
               icon: <Globe className="w-12 h-12 text-[#62d84e]" />,
               title: "Scalable & Seamless",
               subtitle: "One platform. Infinite possibilities.",
-              description: "Whether you have one store or thousands, our platform grows with you, maintaining performance at any scale."
+              description: "Whether you have one store or thousands, our platform grows with you, maintaining performance at any scale in the retail industry."
             },
             {
               icon: <DollarSign className="w-12 h-12 text-[#62d84e]" />,
               title: "Revenue-Focused",
               subtitle: "Designed to grow your business, effortlessly.",
-              description: "Every feature is built with your bottom line in mind, turning customer engagement into measurable revenue growth."
+              description: "Every feature is built with your bottom line in mind, turning customer engagement into measurable revenue growth for your retail business."
             }
           ].map((feature, index) => (
             <div 

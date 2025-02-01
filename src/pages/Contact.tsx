@@ -49,9 +49,9 @@ export function Contact() {
       <div className="pt-32 pb-20 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h1 className="text-4xl lg:text-6xl font-bold mb-6 text-[#002131]">Get in Touch</h1>
+            <h1 className="text-4xl lg:text-6xl font-bold mb-6 text-[#002131]">Get in Touch with Coupit</h1>
             <p className="text-xl lg:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto">
-              Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+              Have questions about our AI-powered retail solutions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
             </p>
           </div>
 

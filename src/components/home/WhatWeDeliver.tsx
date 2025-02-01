@@ -8,7 +8,7 @@ export function WhatWeDeliver() {
         <div className="text-center mb-16">
           <h2 className="heading">What We Deliver</h2>
           <p className="subheading max-w-2xl mx-auto">
-            Powerful solutions for both brands and shoppers
+            Powerful AI-powered retail solutions for both brands and shoppers
           </p>
         </div>
         

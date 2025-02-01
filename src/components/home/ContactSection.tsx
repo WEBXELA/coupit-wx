@@ -7,9 +7,9 @@ export function ContactSection() {
     <section className="bg-[#002131] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="heading">Get in Touch</h2>
+          <h2 className="heading">Get in Touch with Coupit</h2>
           <p className="subheading max-w-2xl mx-auto">
-            Have questions? We're here to help. Reach out to us through any of these channels.
+            Have questions about our AI-powered retail solutions? We're here to help. Reach out to us through any of these channels.
           </p>
         </div>
 
