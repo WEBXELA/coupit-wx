@@ -41,4 +41,18 @@ Thank you for your interest in contributing to Coupit! We welcome contributions 
 
 Please note that all contributors are expected to adhere to the project's [Code of Conduct](CODE_OF_CONDUCT.md). By participating in this project, you agree to abide by its terms.
 
+## Recent Changes in Contribution Process
+
+We have recently updated our contribution process to streamline collaboration and improve the quality of contributions. Please take note of the following changes:
+
+1. **Issue Tracking**: All contributions should be linked to an existing issue or a new issue should be created before starting work on a contribution. This helps in tracking progress and ensures that the contribution aligns with the project's goals.
+
+2. **Code Reviews**: All pull requests will undergo a code review process. Reviewers will provide feedback and request changes if necessary. Please be responsive to feedback and make the requested changes promptly.
+
+3. **Testing**: Ensure that your changes are thoroughly tested. Include unit tests, integration tests, and any other relevant tests to verify the functionality and stability of your contribution.
+
+4. **Documentation**: Update the documentation to reflect any changes or new features introduced by your contribution. This includes updating the README, API documentation, and any other relevant documentation files.
+
+5. **Communication**: Maintain open and clear communication with the project maintainers and other contributors. Use the project's communication channels, such as the issue tracker, discussion forums, or chat platforms, to ask questions, seek clarification, and provide updates on your progress.
+
 Thank you for contributing to Coupit!
