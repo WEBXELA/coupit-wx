@@ -14,7 +14,7 @@ export function FutureRetail() {
             <Sparkles className="w-6 h-6 text-[#62d84e]" />
           </div>
           <h2 className="heading mb-4">The Future of In-Store Engagement Starts Here</h2>
-          <p className="subheading mb-12">Transform the way you connect. Let's redefine retail—together.</p>
+          <p className="subheading mb-12">Transform the way you connect. Let's redefine retail—together with AI-powered retail solutions.</p>
           <div className="flex flex-wrap justify-center gap-4">
             <button className="primary-button flex items-center gap-2">
               Get Started Now <ArrowRight className="w-5 h-5" />

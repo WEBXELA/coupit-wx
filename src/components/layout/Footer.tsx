@@ -9,11 +9,12 @@ export function Footer() {
         <div className="flex justify-center items-center mb-8">
           <Link to="/" className="flex items-center gap-2">
             <Target className="w-8 h-8 text-[#62d84e]" />
-            <span className="text-2xl font-bold">Coupit.</span>
+            <span className="text-2xl font-bold">Coupit - AI-Powered Retail Solutions</span>
           </Link>
         </div>
         <div className="text-center text-gray-400">
           <p>© {new Date().getFullYear()} Coupit. All rights reserved.</p>
+          <p>Boost your business with our AI-powered retail solutions.</p>
         </div>
       </div>
     </footer>

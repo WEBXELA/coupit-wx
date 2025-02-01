@@ -6,9 +6,9 @@ export function Features() {
     <section id="features" className="bg-[#002131] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
-          <h2 className="heading">Powerful Features to Drive Growth</h2>
+          <h2 className="heading">Powerful Features to Drive Retail Growth</h2>
           <p className="subheading max-w-2xl mx-auto">
-            Everything you need to transform your physical store into a digital powerhouse
+            Everything you need to transform your physical store into a digital powerhouse with AI-powered retail solutions
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-8">
