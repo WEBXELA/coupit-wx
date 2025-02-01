@@ -9,9 +9,9 @@ export function Hero() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h1 className="heading text-5xl lg:text-7xl">
-              Transform Your <br />
+            Upgrade Your<br />
               <span className="text-[#62d84e]">Physical Store</span> <br />
-              Into a Digital Hub
+              with AI Today
             </h1>
             <p className="subheading max-w-2xl">
               Coupit bridges the gap between physical and digital retail with AI-powered 
