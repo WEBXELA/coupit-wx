@@ -40,8 +40,8 @@ export function Home() {
       <HowItWorks />
       <WhatWeDeliver />
       <WhyDifferent />
-      {/* <FutureRetail /> */}
-      {/* <Testimonials /> */}
+      <FutureRetail />
+      <Testimonials />
       <ContactSection />
       <Subscribe />
       <Cta />

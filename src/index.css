@@ -26,18 +26,18 @@
   }
   
   .primary-button {
-    @apply bg-[#62d84e] text-[#002131] px-8 py-3 rounded-full font-semibold 
+    @apply bg-[#F1EFE8] text-[#002131] px-8 py-3 rounded-full font-semibold 
            hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105;
   }
   
   .secondary-button {
-    @apply border-2 border-[#62d84e] text-[#62d84e] px-8 py-3 rounded-full font-semibold 
-           hover:bg-[#62d84e] hover:text-[#002131] transition-all duration-300;
+    @apply border-2 border-[#F1EFE8] text-[#F1EFE8] px-8 py-3 rounded-full font-semibold 
+           hover:bg-[#F1EFE8] hover:text-[#002131] transition-all duration-300;
   }
   
   .feature-card {
     @apply bg-[#002131] p-8 rounded-2xl hover:transform hover:scale-105 
-           transition-all duration-500 hover:shadow-xl hover:shadow-[#62d84e]/20;
+           transition-all duration-500 hover:shadow-xl hover:shadow-[#F1EFE8]/20;
   }
   
   .section-animate {
@@ -49,12 +49,12 @@
   }
 
   .stats-card {
-    @apply bg-[#001824] p-8 rounded-2xl border border-[#62d84e]/20
-           hover:border-[#62d84e]/40 transition-all duration-300;
+    @apply bg-[#001824] p-8 rounded-2xl border border-[#F1EFE8]/20
+           hover:border-[#F1EFE8]/40 transition-all duration-300;
   }
 
   .nav-link {
-    @apply text-gray-300 hover:text-[#62d84e] transition-colors duration-300;
+    @apply text-gray-300 hover:text-[#F1EFE8] transition-colors duration-300;
   }
 
   @keyframes slide-up {

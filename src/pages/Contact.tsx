@@ -58,7 +58,7 @@ export function Contact() {
           {showConfirmation && (
             <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
               <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md mx-4 transform animate-fade-in">
-                <CheckCircle className="w-16 h-16 text-[#62d84e] mx-auto mb-4" />
+                <CheckCircle className="w-16 h-16 text-[#F1EFE8] mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-[#002131] mb-2">Message Sent!</h3>
                 <p className="text-gray-600 mb-6">Thank you for reaching out. We'll get back to you soon.</p>
                 <button 
@@ -82,7 +82,7 @@ export function Contact() {
                     name="name"
                     value={formData.name}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#62d84e] text-[#002131]"
+                    className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#002131]"
                     placeholder="Your name"
                     required
                   />
@@ -95,7 +95,7 @@ export function Contact() {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#62d84e] text-[#002131]"
+                    className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#002131]"
                     placeholder="your@email.com"
                     required
                   />
@@ -109,7 +109,7 @@ export function Contact() {
                   name="subject"
                   value={formData.subject}
                   onChange={handleChange}
-                  className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#62d84e] text-[#002131]"
+                  className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#002131]"
                   placeholder="How can we help?"
                   required
                 />
@@ -122,7 +122,7 @@ export function Contact() {
                   value={formData.message}
                   onChange={handleChange}
                   rows={6}
-                  className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#62d84e] text-[#002131]"
+                  className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#002131]"
                   placeholder="Your message..."
                   required
                 ></textarea>

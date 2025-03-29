@@ -4,7 +4,7 @@ import { ChevronRight } from 'lucide-react';
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" className="bg-[#62d84e] section-padding">
+    <section id="how-it-works" className="bg-[#F1EFE8] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="heading text-[#002131]">How Coupit Works</h2>
@@ -15,7 +15,7 @@ export function HowItWorks() {
         <div className="grid md:grid-cols-4 gap-8">
           {[
             {
-              icon: <Settings className="w-12 h-12 text-[#62d84e]" />,
+              icon: <Settings className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Install & Customize",
               description: "Place sleek, customizable displays in your store that match your brand",
               details: [
@@ -25,7 +25,7 @@ export function HowItWorks() {
               ]
             },
             {
-              icon: <MessageSquare className="w-12 h-12 text-[#62d84e]" />,
+              icon: <MessageSquare className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Seamless Integration",
               description: "Sync with your POS system and automate your entire workflow",
               details: [
@@ -35,7 +35,7 @@ export function HowItWorks() {
               ]
             },
             {
-              icon: <GamepadIcon className="w-12 h-12 text-[#62d84e]" />,
+              icon: <GamepadIcon className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Engage Customers",
               description: "Create interactive experiences that drive engagement and loyalty",
               details: [
@@ -45,7 +45,7 @@ export function HowItWorks() {
               ]
             },
             {
-              icon: <LineChart className="w-12 h-12 text-[#62d84e]" />,
+              icon: <LineChart className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Measure & Optimize",
               description: "Get real-time insights to refine your strategy and boost results",
               details: [

@@ -43,8 +43,8 @@ export function Subscribe() {
   return (
     <section className="bg-[#f7f7f7] section-padding relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
-        <div className="absolute transform rotate-45 -right-1/4 -top-1/4 w-1/2 h-1/2 bg-[#62d84e]/20 rounded-full blur-3xl"></div>
-        <div className="absolute transform -rotate-45 -left-1/4 -bottom-1/4 w-1/2 h-1/2 bg-[#62d84e]/20 rounded-full blur-3xl"></div>
+        <div className="absolute transform rotate-45 -right-1/4 -top-1/4 w-1/2 h-1/2 bg-[#F1EFE8]/20 rounded-full blur-3xl"></div>
+        <div className="absolute transform -rotate-45 -left-1/4 -bottom-1/4 w-1/2 h-1/2 bg-[#F1EFE8]/20 rounded-full blur-3xl"></div>
       </div>
       
       <div className="max-w-6xl mx-auto relative">
@@ -63,7 +63,7 @@ export function Subscribe() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email"
-                className="flex-grow px-6 py-4 bg-[#f7f7f7] border border-gray-200 rounded-full focus:outline-none focus:border-[#62d84e] text-gray-800"
+                className="flex-grow px-6 py-4 bg-[#f7f7f7] border border-gray-200 rounded-full focus:outline-none focus:border-[#F1EFE8] text-gray-800"
                 required
               />
               <button
@@ -83,7 +83,7 @@ export function Subscribe() {
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
                 isDuplicate 
                   ? 'bg-amber-50 text-amber-800' 
-                  : 'bg-[#62d84e]/10 text-[#002131]'
+                  : 'bg-[#F1EFE8]/10 text-[#002131]'
               }`}>
                 {isDuplicate ? (
                   <>
@@ -92,7 +92,7 @@ export function Subscribe() {
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-5 h-5 text-[#62d84e]" />
+                    <CheckCircle className="w-5 h-5 text-[#F1EFE8]" />
                     <span className="font-medium">Thank you for subscribing!</span>
                   </>
                 )}
