@@ -32,8 +32,8 @@ export function Testimonials() {
               image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80"
             }
           ].map((testimonial, index) => (
-            <div key={index} className="bg-[#001824] p-8 rounded-2xl border border-[#62d84e]/20 section-animate">
-              <Award className="w-8 h-8 text-[#62d84e] mb-4" />
+            <div key={index} className="bg-[#001824] p-8 rounded-2xl border border-[#F1EFE8]/20 section-animate">
+              <Award className="w-8 h-8 text-[#F1EFE8] mb-4" />
               <p className="text-lg mb-6">{testimonial.quote}</p>
               <div className="flex items-center gap-4">
                 <img

@@ -3,7 +3,7 @@ import { ArrowRight, ChevronRight } from 'lucide-react';
 
 export function Cta() {
   return (
-    <section className="bg-[#62d84e] section-padding">
+    <section className="bg-[#F1EFE8] section-padding">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="heading text-[#002131]">The Future of In-Store Engagement Starts Here</h2>
         <p className="subheading text-[#002131]/80 max-w-2xl mx-auto">
