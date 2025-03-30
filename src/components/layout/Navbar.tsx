@@ -10,8 +10,8 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <Target className="w-8 h-8 text-[#62d84e]" />
-            <span className="text-2xl font-bold text-[#002131]">Coupit.</span>
+            <Target className="w-8 h-8 text-[#F1EFE8]" />
+            <span className="text-2xl font-bold text-[#2B2C30]">Coupit.</span>
           </Link>
           
           {/* Desktop Navigation */}
@@ -21,7 +21,7 @@ export function Navbar() {
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden text-[#002131]"
+            className="md:hidden text-[#2B2C30]"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
             {isMenuOpen ? <X /> : <Menu />}

@@ -3,7 +3,7 @@ import { BarChart3, ChevronRight, Airplay as Display, GamepadIcon } from 'lucide
 
 export function Features() {
   return (
-    <section id="features" className="bg-[#002131] section-padding">
+    <section id="features" className="bg-[#2B2C30] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="heading">Powerful Features to Drive Retail Growth</h2>
@@ -14,7 +14,7 @@ export function Features() {
         <div className="grid md:grid-cols-3 gap-8">
           {[
             {
-              icon: <BarChart3 className="w-12 h-12 text-[#62d84e]" />,
+              icon: <BarChart3 className="w-12 h-12 text-[#F1EFE8]" />,
               title: "AI-Powered Analytics",
               description: "Get real-time insights into customer behavior, campaign performance, and sales trends",
               features: [
@@ -24,7 +24,7 @@ export function Features() {
               ]
             },
             {
-              icon: <Display className="w-12 h-12 text-[#62d84e]" />,
+              icon: <Display className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Interactive Displays",
               description: "Engage customers with beautiful, interactive displays that drive action",
               features: [
@@ -34,7 +34,7 @@ export function Features() {
               ]
             },
             {
-              icon: <GamepadIcon className="w-12 h-12 text-[#62d84e]" />,
+              icon: <GamepadIcon className="w-12 h-12 text-[#F1EFE8]" />,
               title: "Gamified Rewards",
               description: "Turn shopping into an engaging experience with instant rewards",
               features: [
@@ -46,19 +46,19 @@ export function Features() {
           ].map((feature, index) => (
             <div 
               key={index} 
-              className="group bg-[#001824] p-8 rounded-2xl section-animate relative
+              className="group bg-[#1A1A1C] p-8 rounded-2xl section-animate relative
                          before:absolute before:inset-0 before:rounded-2xl before:border-2 
-                         before:border-[#62d84e]/20 before:transition-all before:duration-300
-                         hover:before:border-[#62d84e]/40 hover:before:scale-105
+                         before:border-[#F1EFE8]/20 before:transition-all before:duration-300
+                         hover:before:border-[#F1EFE8]/40 hover:before:scale-105
                          after:absolute after:inset-0 after:rounded-2xl after:border-2
-                         after:border-[#62d84e]/10 after:transition-all after:duration-500
+                         after:border-[#F1EFE8]/10 after:transition-all after:duration-500
                          hover:after:scale-110 hover:after:opacity-0
                          overflow-visible"
             >
               <div className="relative z-10">
-                <div className="bg-[#002131] p-4 rounded-xl inline-block mb-6
+                <div className="bg-[#2B2C30] p-4 rounded-xl inline-block mb-6
                                transform transition-all duration-300 group-hover:scale-110
-                               group-hover:bg-[#62d84e]/10">
+                               group-hover:bg-[#F1EFE8]/10">
                   {feature.icon}
                 </div>
                 <h3 className="text-2xl font-bold mb-3 transition-transform duration-300
@@ -69,7 +69,7 @@ export function Features() {
                   {feature.features.map((item, i) => (
                     <li key={i} className="flex items-center gap-2 transition-transform
                                          duration-300 group-hover:translate-x-2">
-                      <ChevronRight className="w-4 h-4 text-[#62d84e]" />
+                      <ChevronRight className="w-4 h-4 text-[#F1EFE8]" />
                       {item}
                     </li>
                   ))}

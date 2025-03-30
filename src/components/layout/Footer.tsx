@@ -4,11 +4,11 @@ import { Link } from 'react-router-dom';
 
 export function Footer() {
   return (
-    <footer className="bg-[#001824] section-padding">
+    <footer className="bg-[#1A1A1C] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-center items-center mb-8">
           <Link to="/" className="flex items-center gap-2">
-            <Target className="w-8 h-8 text-[#62d84e]" />
+            <Target className="w-8 h-8 text-[#F1EFE8]" />
             <span className="text-2xl font-bold">Coupit.</span>
           </Link>
         </div>

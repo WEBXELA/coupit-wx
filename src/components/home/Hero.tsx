@@ -4,13 +4,13 @@ import { Link } from 'react-router-dom';
 
 export function Hero() {
   return (
-    <section className="min-h-screen flex items-center bg-[#002131] section-padding pt-32">
+    <section className="min-h-screen flex items-center bg-[#2B2C30] section-padding pt-32">
       <div className="relative z-10 max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row items-center gap-12">
           <div className="flex-1">
             <h1 className="heading text-5xl lg:text-7xl">
             Upgrade Your<br />
-              <span className="text-[#62d84e]">Physical Store</span> <br />
+              <span className="text-[#F1EFE8]">Physical Store</span> <br />
               with AI Today
             </h1>
             <p className="subheading max-w-2xl">
@@ -26,11 +26,11 @@ export function Hero() {
           <div className="flex-1">
             <div className="relative">
               {/* Decorative elements */}
-              <div className="absolute -top-6 -left-6 w-24 h-24 bg-[#62d84e]/10 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-[#62d84e]/10 rounded-full blur-xl"></div>
+              <div className="absolute -top-6 -left-6 w-24 h-24 bg-[#F1EFE8]/10 rounded-full blur-xl"></div>
+              <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-[#F1EFE8]/10 rounded-full blur-xl"></div>
               
               {/* Main image container */}
-              <div className="relative bg-gradient-to-br from-[#001824] to-[#002131] p-6 rounded-2xl">
+              <div className="relative bg-gradient-to-br from-[#1A1A1C] to-[#2B2C30] p-6 rounded-2xl">
                 <img 
                   src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80"
                   alt="Coupit Dashboard"
@@ -38,12 +38,12 @@ export function Hero() {
                 />
                 
                 {/* Floating elements */}
-                <div className="absolute -top-4 -right-4 bg-[#62d84e] text-[#002131] px-4 py-2 rounded-full text-sm font-semibold">
+                <div className="absolute -top-4 -right-4 bg-[#F1EFE8] text-[#2B2C30] px-4 py-2 rounded-full text-sm font-semibold">
                   Live Demo
                 </div>
                 
                 {/* Stats pill */}
-                <div className="absolute -bottom-4 -left-4 bg-white text-[#002131] px-6 py-3 rounded-full shadow-lg flex items-center gap-4">
+                <div className="absolute -bottom-4 -left-4 bg-white text-[#2B2C30] px-6 py-3 rounded-full shadow-lg flex items-center gap-4">
                   <div>
                     <p className="text-xs text-gray-600">Active Users</p>
                     <p className="text-lg font-bold">50K+</p>
@@ -51,7 +51,7 @@ export function Hero() {
                   <div className="w-px h-8 bg-gray-200"></div>
                   <div>
                     <p className="text-xs text-gray-600">Growth</p>
-                    <p className="text-lg font-bold text-[#62d84e]">+30%</p>
+                    <p className="text-lg font-bold text-[#2B2C30]">+30%</p>
                   </div>
                 </div>
               </div>

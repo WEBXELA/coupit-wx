@@ -3,7 +3,7 @@ import { Building2, Zap, BarChart3, Airplay as Display, Gift, Wallet, Smartphone
 
 export function WhatWeDeliver() {
   return (
-    <section className="bg-[#002131] section-padding">
+    <section className="bg-[#2B2C30] section-padding">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2 className="heading">What We Deliver</h2>
@@ -15,27 +15,27 @@ export function WhatWeDeliver() {
         <div className="grid md:grid-cols-2 gap-12">
           {/* For Brands */}
           <div className="section-animate">
-            <div className="bg-[#001824] p-8 rounded-2xl border border-[#62d84e]/20 h-full">
+            <div className="bg-[#1A1A1C] p-8 rounded-2xl border border-[#F1EFE8]/20 h-full">
               <div className="flex items-center gap-4 mb-8">
-                <div className="bg-[#002131] p-4 rounded-xl">
-                  <Building2 className="w-8 h-8 text-[#62d84e]" />
+                <div className="bg-[#2B2C30] p-4 rounded-xl">
+                  <Building2 className="w-8 h-8 text-[#F1EFE8]" />
                 </div>
                 <h3 className="text-2xl font-bold">For Brands</h3>
               </div>
               <div className="space-y-6">
                 {[
                   {
-                    icon: <Zap className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <Zap className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "AI-Powered Tools",
                     description: "Drive revenue and customer engagement with intelligent automation and personalization"
                   },
                   {
-                    icon: <BarChart3 className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <BarChart3 className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "Real-Time Insights",
                     description: "Optimize campaigns and inventory with data-driven analytics and reporting"
                   },
                   {
-                    icon: <Display className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <Display className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "Beautiful Displays",
                     description: "Captivate customers with sleek, interactive digital experiences"
                   }
@@ -56,27 +56,27 @@ export function WhatWeDeliver() {
 
           {/* For Shoppers */}
           <div className="section-animate">
-            <div className="bg-[#001824] p-8 rounded-2xl border border-[#62d84e]/20 h-full">
+            <div className="bg-[#1A1A1C] p-8 rounded-2xl border border-[#F1EFE8]/20 h-full">
               <div className="flex items-center gap-4 mb-8">
-                <div className="bg-[#002131] p-4 rounded-xl">
-                  <UserCheck className="w-8 h-8 text-[#62d84e]" />
+                <div className="bg-[#2B2C30] p-4 rounded-xl">
+                  <UserCheck className="w-8 h-8 text-[#F1EFE8]" />
                 </div>
                 <h3 className="text-2xl font-bold">For Shoppers</h3>
               </div>
               <div className="space-y-6">
                 {[
                   {
-                    icon: <Gift className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <Gift className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "Interactive Experiences",
                     description: "Enjoy fun, gamified promotions with instant rewards and surprises"
                   },
                   {
-                    icon: <Wallet className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <Wallet className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "Frictionless Discounts",
                     description: "Save deals directly to mobile wallets for seamless redemption"
                   },
                   {
-                    icon: <Smartphone className="w-6 h-6 text-[#62d84e]" />,
+                    icon: <Smartphone className="w-6 h-6 text-[#F1EFE8]" />,
                     title: "Mobile-First Design",
                     description: "Access rewards and offers easily from any mobile device"
                   }
