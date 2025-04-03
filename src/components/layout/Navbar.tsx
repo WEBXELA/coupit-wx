@@ -1,15 +1,21 @@
 import React, { useState } from 'react';
 import { Menu, X, Target } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    setIsMenuOpen(false);
+    navigate(path);
+  };
 
   return (
     <nav className="fixed w-full z-50 bg-[#f7f7f7] border-b border-gray-200">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" onClick={() => setIsMenuOpen(false)}>
             <Target className="w-8 h-8 text-[#1A1A1C]" />
             <span className="text-2xl font-bold text-[#2B2C30]">Coupit.</span>
           </Link>
@@ -33,8 +39,8 @@ export function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col gap-4">
-              <Link to="/contact" className="primary-button w-full text-center">Contact Us</Link>
-              <Link to="/pricing" className="primary-button w-full text-center">Pricing</Link>
+              <button onClick={() => handleNavigation('/contact')} className="primary-button w-full text-center">Contact Us</button>
+              <button onClick={() => handleNavigation('/pricing')} className="primary-button w-full text-center">Pricing</button>
             </div>
           </div>
         )}
