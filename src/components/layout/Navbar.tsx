@@ -17,6 +17,7 @@ export function Navbar() {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
             <Link to="/contact" className="primary-button">Contact Us</Link>
+            <Link to="/pricing" className="primary-button">Pricing</Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -33,6 +34,7 @@ export function Navbar() {
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col gap-4">
               <Link to="/contact" className="primary-button w-full text-center">Contact Us</Link>
+              <Link to="/pricing" className="primary-button w-full text-center">Pricing</Link>
             </div>
           </div>
         )}
