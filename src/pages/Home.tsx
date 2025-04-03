@@ -5,11 +5,10 @@ import { Features } from '../components/home/Features';
 import { HowItWorks } from '../components/home/HowItWorks';
 import { WhatWeDeliver } from '../components/home/WhatWeDeliver';
 import { WhyDifferent } from '../components/home/WhyDifferent';
-import { FutureRetail } from '../components/home/FutureRetail';
-import { Testimonials } from '../components/home/Testimonials';
 import { ContactSection } from '../components/home/ContactSection';
 import { Subscribe } from '../components/home/Subscribe';
 import { Cta } from '../components/home/Cta';
+import { Plan } from '../components/home/Plan';
 
 export function Home() {
   useEffect(() => {
@@ -40,8 +39,7 @@ export function Home() {
       <HowItWorks />
       <WhatWeDeliver />
       <WhyDifferent />
-      {/* <FutureRetail /> */}
-      {/* <Testimonials /> */}
+      <Plan />
       <ContactSection />
       <Subscribe />
       <Cta />
