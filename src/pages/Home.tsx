@@ -10,6 +10,10 @@ import { Testimonials } from '../components/home/Testimonials';
 import { ContactSection } from '../components/home/ContactSection';
 import { Subscribe } from '../components/home/Subscribe';
 import { Cta } from '../components/home/Cta';
+import { Problem } from '../components/home/Problem';
+import { WhatCoupitDelivers } from '../components/home/WhatCoupitDelivers';
+import { EmpowerBrands } from '../components/home/EmpowerBrands';
+import { Solutions } from '../components/home/Solutions';
 
 export function Home() {
   useEffect(() => {
@@ -35,6 +39,10 @@ export function Home() {
   return (
     <div>
       <Hero />
+      <Problem />
+      <WhatCoupitDelivers />
+      <EmpowerBrands />
+      <Solutions />
       <Stats />
       <Features />
       <HowItWorks />
