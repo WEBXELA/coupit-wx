@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { Toast } from '../components/ui/Toast';
 
@@ -11,9 +11,10 @@ export function Contact() {
     message: ''
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [error, setError] = useState('');
 
-  // Scroll to top when component mounts
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
@@ -22,21 +23,26 @@ export function Contact() {
     e.preventDefault();
     
     try {
-      const { error } = await supabase
+      setIsSubmitting(true);
+      setError('');
+      
+      const { error: submitError } = await supabase
         .from('contact_messages')
         .insert([formData]);
 
-      if (error) throw error;
+      if (submitError) throw submitError;
 
       setFormData({ name: '', email: '', subject: '', message: '' });
       setShowConfirmation(true);
       
-      // Hide confirmation after 5 seconds
       setTimeout(() => {
         setShowConfirmation(false);
       }, 5000);
     } catch (error) {
-      setShowConfirmation(false);
+      console.error('Error:', error);
+      setError('Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -59,7 +65,7 @@ export function Contact() {
           {showConfirmation && (
             <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
               <div className="bg-white p-8 rounded-2xl shadow-xl text-center max-w-md mx-4 transform animate-fade-in">
-                <CheckCircle className="w-16 h-16 text-[#F1EFE8] mx-auto mb-4" />
+                <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
                 <h3 className="text-2xl font-bold text-[#2B2C30] mb-2">Message Sent!</h3>
                 <p className="text-gray-600 mb-6">Thank you for reaching out. We'll get back to you soon.</p>
                 <button 
@@ -86,6 +92,7 @@ export function Contact() {
                     className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#2B2C30]"
                     placeholder="Your name"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -99,6 +106,7 @@ export function Contact() {
                     className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#2B2C30]"
                     placeholder="your@email.com"
                     required
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -113,6 +121,7 @@ export function Contact() {
                   className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#2B2C30]"
                   placeholder="How can we help?"
                   required
+                  disabled={isSubmitting}
                 />
               </div>
               <div className="mb-8">
@@ -126,13 +135,23 @@ export function Contact() {
                   className="w-full px-4 py-3 bg-[#f7f7f7] border border-gray-200 rounded-lg focus:outline-none focus:border-[#F1EFE8] text-[#2B2C30]"
                   placeholder="Your message..."
                   required
+                  disabled={isSubmitting}
                 ></textarea>
               </div>
+              {error && (
+                <div className="mb-6 text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-50 text-red-800">
+                    <AlertCircle className="w-5 h-5 text-red-500" />
+                    <span className="font-medium">{error}</span>
+                  </div>
+                </div>
+              )}
               <button 
                 type="submit" 
                 className="primary-button w-full flex items-center justify-center gap-2 hover:shadow-lg transition-shadow duration-300"
+                disabled={isSubmitting}
               >
-                Send Message <Send className="w-5 h-5" />
+                {isSubmitting ? 'Sending...' : 'Send Message'} <Send className="w-5 h-5" />
               </button>
             </form>
           </div>

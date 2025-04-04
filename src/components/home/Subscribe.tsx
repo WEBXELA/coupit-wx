@@ -6,11 +6,14 @@ export function Subscribe() {
   const [email, setEmail] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isDuplicate, setIsDuplicate] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
+      setIsSubmitting(true);
+      
       const { error } = await supabase
         .from('newsletter_subscriptions')
         .insert([{ email }]);
@@ -19,24 +22,22 @@ export function Subscribe() {
         if (error.code === '23505') { // Unique violation
           setIsDuplicate(true);
           setShowConfirmation(true);
-          setTimeout(() => {
-            setShowConfirmation(false);
-            setIsDuplicate(false);
-          }, 3000);
         } else {
           throw error;
         }
       } else {
         setIsDuplicate(false);
         setShowConfirmation(true);
-        setTimeout(() => {
-          setShowConfirmation(false);
-          setIsDuplicate(false);
-        }, 3000);
         setEmail('');
       }
     } catch (error) {
       console.error('Error:', error);
+    } finally {
+      setIsSubmitting(false);
+      setTimeout(() => {
+        setShowConfirmation(false);
+        setIsDuplicate(false);
+      }, 3000);
     }
   };
 
@@ -65,12 +66,14 @@ export function Subscribe() {
                 placeholder="Enter your email"
                 className="flex-grow px-6 py-4 bg-[#f7f7f7] border border-gray-200 rounded-full focus:outline-none focus:border-[#F1EFE8] text-gray-800"
                 required
+                disabled={isSubmitting}
               />
               <button
                 type="submit"
                 className="primary-button whitespace-nowrap flex items-center justify-center gap-2"
+                disabled={isSubmitting}
               >
-                Subscribe <Send className="w-5 h-5" />
+                {isSubmitting ? 'Subscribing...' : 'Subscribe'} <Send className="w-5 h-5" />
               </button>
             </div>
             <p className="text-sm text-gray-500 text-center mt-4">
@@ -83,7 +86,7 @@ export function Subscribe() {
               <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
                 isDuplicate 
                   ? 'bg-amber-50 text-amber-800' 
-                  : 'bg-[#F1EFE8]/10 text-[#2B2C30]'
+                  : 'bg-green-50 text-green-800'
               }`}>
                 {isDuplicate ? (
                   <>
@@ -92,7 +95,7 @@ export function Subscribe() {
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-5 h-5 text-[#F1EFE8]" />
+                    <CheckCircle className="w-5 h-5 text-green-500" />
                     <span className="font-medium">Thank you for subscribing!</span>
                   </>
                 )}
