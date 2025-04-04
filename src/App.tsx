@@ -4,6 +4,7 @@ import { Layout } from './components/layout/Layout';
 import { Home } from './pages/Home';
 import { Contact } from './pages/Contact';
 import { Pricing } from './pages/Pricing';
+import { SquareOnboarding } from './pages/SquareOnboarding';
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/square/onboarding" element={<SquareOnboarding />} />
         </Routes>
       </Layout>
     </Router>

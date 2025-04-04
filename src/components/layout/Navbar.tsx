@@ -21,9 +21,15 @@ export function Navbar() {
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
-            <Link to="/contact" className="primary-button">Contact Us</Link>
-            <Link to="/pricing" className="primary-button">Pricing</Link>
+          <div className="hidden md:flex items-center gap-4">
+            <Link to="/contact" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</Link>
+            <Link to="/pricing" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</Link>
+            <Link 
+              to="/square/onboarding" 
+              className="primary-button"
+            >
+              Get Started
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -39,8 +45,9 @@ export function Navbar() {
         {isMenuOpen && (
           <div className="md:hidden mt-4 pb-4">
             <div className="flex flex-col gap-4">
-              <button onClick={() => handleNavigation('/contact')} className="primary-button w-full text-center">Contact Us</button>
-              <button onClick={() => handleNavigation('/pricing')} className="primary-button w-full text-center">Pricing</button>
+              <button onClick={() => handleNavigation('/contact')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</button>
+              <button onClick={() => handleNavigation('/pricing')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</button>
+              <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
             </div>
           </div>
         )}

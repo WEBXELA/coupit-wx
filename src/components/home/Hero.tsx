@@ -16,8 +16,11 @@ export function Hero() {
             engagement tools that drive foot traffic and boost sales.
           </p>
           <div className="flex justify-center gap-4">
-            <Link to="/contact" className="primary-button flex items-center gap-2">
-              Contact Us <ArrowRight className="w-5 h-5" />
+            <Link to="/square/onboarding" className="primary-button flex items-center gap-2">
+              Get Started <ArrowRight className="w-5 h-5" />
+            </Link>
+            <Link to="/contact" className="secondary-button flex items-center gap-2">
+              Contact Us <ChevronRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
