@@ -14,7 +14,6 @@ export function SquareTest() {
   const [connectedAccounts, setConnectedAccounts] = useState<SquareAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
     fetchConnectedAccounts();
@@ -23,27 +22,26 @@ export function SquareTest() {
   const fetchConnectedAccounts = async () => {
     try {
       setLoading(true);
-      setError('');
-      setDebugInfo('Fetching all connected accounts...');
 
-      // Fetch all profiles with Square connections
+      // First, get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+
+      if (!user) {
+        throw new Error('Not authenticated. Please log in first.');
+      }
+
+      // Fetch profiles with Square connections
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
-        .not('square_merchant_id', 'is', null)
-        .order('created_at', { ascending: false });
+        .or('square_merchant_id.not.is.null,square_access_token.not.is.null');
 
       if (error) {
-        setDebugInfo(prevInfo => `${prevInfo}\nDatabase error: ${error.message}`);
         throw error;
-      }
-
-      setDebugInfo(prevInfo => `${prevInfo}\nFound ${data?.length || 0} total connected accounts`);
-      
-      if (data) {
-        data.forEach(account => {
-          setDebugInfo(prevInfo => `${prevInfo}\nAccount: ${account.email} (Merchant ID: ${account.square_merchant_id || 'None'})`);
-        });
       }
 
       setConnectedAccounts(data || []);
@@ -142,11 +140,6 @@ export function SquareTest() {
               )}
             </div>
           )}
-        </div>
-
-        {/* Debug Information */}
-        <div className="bg-gray-900 text-gray-200 rounded-lg p-4 mb-8 font-mono text-sm overflow-x-auto">
-          <pre>{debugInfo}</pre>
         </div>
 
         <div className="text-center">
