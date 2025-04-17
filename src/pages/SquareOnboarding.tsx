@@ -10,8 +10,15 @@ export function SquareOnboarding() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const urlParams = new URLSearchParams(window.location.search);
-  const utmSource = urlParams.get('utm_source');
+  
+  // Get the application ID from environment variables
+  const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
+  const SQUARE_OAUTH_URL = 'https://connect.squareup.com/oauth2/authorize';
+  
+  // Generate a random state value for OAuth security
+  const generateState = () => {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -19,7 +26,6 @@ export function SquareOnboarding() {
       setLoading(false);
     });
 
-    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
     });
@@ -33,12 +39,6 @@ export function SquareOnboarding() {
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/square/onboarding?utm_source=${utmSource}`,
-          data: {
-            utm_source: utmSource,
-          },
-        },
       });
 
       if (authError) throw authError;
@@ -51,14 +51,13 @@ export function SquareOnboarding() {
             {
               id: authData.user.id,
               email: email,
-              utm_source: utmSource,
             }
           ]);
 
         if (profileError) throw profileError;
 
-        // Redirect to Square OAuth
-        window.location.href = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=${utmSource}&user_id=${authData.user.id}`;
+        // After successful signup, redirect to Square OAuth
+        handleSquareConnect();
       }
     } catch (error) {
       console.error('Error:', error.message);
@@ -69,15 +68,15 @@ export function SquareOnboarding() {
   const handleSignIn = async () => {
     try {
       setError('');
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
 
-      // Redirect to Square OAuth after successful sign in
-      window.location.href = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=${utmSource}&user_id=${data.user.id}`;
+      // After successful signin, redirect to Square OAuth
+      handleSquareConnect();
     } catch (error) {
       console.error('Error:', error.message);
       setError(error.message);
@@ -85,9 +84,25 @@ export function SquareOnboarding() {
   };
 
   const handleSquareConnect = () => {
-    if (session?.user) {
-      window.location.href = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=${utmSource}&user_id=${session.user.id}`;
+    if (!SQUARE_APP_ID) {
+      setError('Square configuration is missing. Please contact support.');
+      return;
     }
+
+    // Generate and store state
+    const state = generateState();
+    sessionStorage.setItem('square_oauth_state', state);
+
+    // Build the OAuth URL with required parameters
+    const params = new URLSearchParams({
+      client_id: SQUARE_APP_ID,
+      scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
+      state: state,
+      session: 'false', // Don't force login if user is already logged in
+    });
+
+    // Redirect to Square's OAuth page
+    window.location.href = `${SQUARE_OAUTH_URL}?${params.toString()}`;
   };
 
   if (loading) {
