@@ -1,25 +1,31 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Auth } from '../components/auth/Auth';
+import { ArrowRight } from 'lucide-react';
 
 export function SquareOnboarding() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
+  // Get the application ID from environment variables
   const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
   const SQUARE_OAUTH_URL = 'https://connect.squareup.com/oauth2/authorize';
   
+  // Generate a random state value for OAuth security
   const generateState = () => {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
   };
 
   useEffect(() => {
+    // Check for error in URL parameters
     const errorParam = searchParams.get('error');
     if (errorParam) {
-      console.error('Square connection error:', errorParam);
+      setError(`Square connection error: ${errorParam}`);
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -34,24 +40,83 @@ export function SquareOnboarding() {
     return () => subscription.unsubscribe();
   }, [searchParams]);
 
+  const handleSignUp = async () => {
+    try {
+      setError('');
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (authError) throw authError;
+
+      if (authData?.user) {
+        // Store additional user data
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: authData.user.id,
+              email: email,
+            }
+          ]);
+
+        if (profileError) throw profileError;
+
+        // After successful signup, redirect to Square OAuth
+        handleSquareConnect();
+      }
+    } catch (error) {
+      console.error('Error:', error.message);
+      setError(error.message);
+    }
+  };
+
+  const handleSignIn = async () => {
+    try {
+      setError('');
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
+
+      // After successful signin, redirect to Square OAuth
+      handleSquareConnect();
+    } catch (error) {
+      console.error('Error:', error.message);
+      setError(error.message);
+    }
+  };
+
   const handleSquareConnect = () => {
     if (!SQUARE_APP_ID) {
-      console.error('Square configuration is missing');
+      setError('Square configuration is missing. Please contact support.');
       return;
     }
 
+    // Generate and store state
     const state = generateState();
     sessionStorage.setItem('square_oauth_state', state);
 
+    // Build the OAuth URL with required parameters
     const redirectUri = 'https://coupit.ai/square/callback';
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
       state: state,
-      session: 'false',
+      session: 'false', // Don't force login if user is already logged in
       redirect_uri: redirectUri,
     });
 
+    console.log('Initiating Square OAuth with:', {
+      client_id: SQUARE_APP_ID,
+      redirect_uri: redirectUri,
+      state: state
+    });
+
+    // Redirect to Square's OAuth page
     window.location.href = `${SQUARE_OAUTH_URL}?${params.toString()}`;
   };
 
@@ -80,18 +145,54 @@ export function SquareOnboarding() {
             </p>
           </div>
 
-          {session ? (
-            <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+            
+            {session ? (
               <button
                 onClick={handleSquareConnect}
-                className="primary-button w-full"
+                className="primary-button w-full flex items-center justify-center gap-2"
               >
-                Connect Square Account
+                Connect Square Account <ArrowRight className="w-5 h-5" />
               </button>
-            </div>
-          ) : (
-            <Auth onAuthSuccess={() => setSession(true)} />
-          )}
+            ) : (
+              <div className="bg-white p-8 rounded-2xl shadow-lg">
+                <div className="space-y-4">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
+                  />
+                  <input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
+                  />
+                  <button
+                    onClick={handleSignUp}
+                    className="primary-button w-full flex items-center justify-center gap-2"
+                  >
+                    Sign Up <ArrowRight className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleSignIn}
+                    className="w-full flex items-center justify-center gap-2 bg-[#2B2C30] text-white px-8 py-3 rounded-full font-semibold 
+                             hover:bg-opacity-90 transition-all duration-300"
+                  >
+                    Log In <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
