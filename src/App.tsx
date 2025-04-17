@@ -6,6 +6,7 @@ import { Contact } from './pages/Contact';
 import { Pricing } from './pages/Pricing';
 import { SquareOnboarding } from './pages/SquareOnboarding';
 import { SquareCallback } from './pages/SquareCallback';
+import { SquareSuccess } from './pages/SquareSuccess';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/square/onboarding" element={<SquareOnboarding />} />
           <Route path="/square/callback" element={<SquareCallback />} />
+          <Route path="/square/success" element={<SquareSuccess />} />
         </Routes>
       </Layout>
     </Router>
