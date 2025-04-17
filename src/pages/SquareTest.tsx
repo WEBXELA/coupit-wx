@@ -45,7 +45,7 @@ export function SquareTest() {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
-        .not('square_access_token', 'is', null);
+        .or('square_merchant_id.not.is.null,square_access_token.not.is.null');
 
       if (error) {
         setDebugInfo(prevInfo => `${prevInfo}\nDatabase error: ${error.message}`);
@@ -61,9 +61,9 @@ export function SquareTest() {
       }
 
       setConnectedAccounts(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching connected accounts:', error);
-      setError(error.message || 'Failed to fetch connected accounts');
+      setError(error?.message || 'Failed to fetch connected accounts');
     } finally {
       setLoading(false);
     }
