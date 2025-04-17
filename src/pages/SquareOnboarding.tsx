@@ -90,16 +90,9 @@ export function SquareOnboarding() {
     }
   };
 
-  const handleSquareConnect = async () => {
+  const handleSquareConnect = () => {
     if (!SQUARE_APP_ID) {
       setError('Square configuration is missing. Please contact support.');
-      return;
-    }
-
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      setError('User not authenticated - please log in again');
       return;
     }
 
@@ -108,7 +101,7 @@ export function SquareOnboarding() {
     sessionStorage.setItem('square_oauth_state', state);
 
     // Build the OAuth URL with required parameters
-    const redirectUri = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=null&user_id=${user.id}`;
+    const redirectUri = 'https://coupit.ai/square/callback';
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
