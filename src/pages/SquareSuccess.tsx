@@ -13,7 +13,7 @@ export function SquareSuccess() {
           Your Square account has been successfully connected to Coupit. You can now start using our AI-powered retail solutions.
         </p>
         <a
-          href="https://api.coupit.ai/v1/dashboard"
+          href="https://api.coupit.ai/v1/square/oauth/callback"
           className="bg-[#2B2C30] text-white px-6 py-3 rounded-lg hover:bg-opacity-90 inline-block"
         >
           Go to Dashboard
