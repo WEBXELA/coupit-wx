@@ -24,24 +24,9 @@ export function SquareTest() {
     try {
       setLoading(true);
       setError('');
-      setDebugInfo('Fetching connected accounts...');
-      
-      // First, get the current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        setDebugInfo(prevInfo => `${prevInfo}\nUser error: ${userError.message}`);
-        throw new Error(`Authentication error: ${userError.message}`);
-      }
+      setDebugInfo('Fetching all connected accounts...');
 
-      if (!user) {
-        setDebugInfo(prevInfo => `${prevInfo}\nNo user found - not authenticated`);
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      setDebugInfo(prevInfo => `${prevInfo}\nAuthenticated as: ${user.email}`);
-
-      // Fetch profiles with Square connections
+      // Fetch ALL profiles with Square connections, not just the current user's
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
@@ -92,7 +77,7 @@ export function SquareTest() {
             Square Connection Test
           </h1>
           <p className="text-xl text-gray-600">
-            Connect test accounts to meet Square's requirements
+            All Connected Square Accounts ({connectedAccounts.length}/5)
           </p>
         </div>
 
@@ -105,7 +90,7 @@ export function SquareTest() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#2B2C30]">
-              Connected Accounts ({connectedAccounts.length}/5)
+              Connected Accounts
             </h2>
             <button
               onClick={fetchConnectedAccounts}
@@ -158,11 +143,6 @@ export function SquareTest() {
           )}
         </div>
 
-        {/* Debug Information */}
-        <div className="bg-gray-900 text-gray-200 rounded-lg p-4 mb-8 font-mono text-sm overflow-x-auto">
-          <pre>{debugInfo}</pre>
-        </div>
-
         <div className="text-center">
           <button
             onClick={handleConnectNew}
@@ -170,6 +150,11 @@ export function SquareTest() {
           >
             Connect New Account
           </button>
+        </div>
+
+        {/* Debug Information */}
+        <div className="bg-gray-900 text-gray-200 rounded-lg p-4 mb-8 font-mono text-sm overflow-x-auto">
+          <pre>{debugInfo}</pre>
         </div>
       </div>
     </div>
