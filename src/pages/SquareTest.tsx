@@ -24,35 +24,21 @@ export function SquareTest() {
     try {
       setLoading(true);
       setError('');
-      setDebugInfo('Fetching connected accounts...');
-      
-      // First, get the current user
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError) {
-        setDebugInfo(prevInfo => `${prevInfo}\nUser error: ${userError.message}`);
-        throw new Error(`Authentication error: ${userError.message}`);
-      }
+      setDebugInfo('Fetching all connected accounts...');
 
-      if (!user) {
-        setDebugInfo(prevInfo => `${prevInfo}\nNo user found - not authenticated`);
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      setDebugInfo(prevInfo => `${prevInfo}\nAuthenticated as: ${user.email}`);
-
-      // Fetch profiles with Square connections
+      // Fetch all profiles with Square connections
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
-        .or('square_merchant_id.not.is.null,square_access_token.not.is.null');
+        .not('square_merchant_id', 'is', null)
+        .order('created_at', { ascending: false });
 
       if (error) {
         setDebugInfo(prevInfo => `${prevInfo}\nDatabase error: ${error.message}`);
         throw error;
       }
 
-      setDebugInfo(prevInfo => `${prevInfo}\nFound ${data?.length || 0} connected accounts`);
+      setDebugInfo(prevInfo => `${prevInfo}\nFound ${data?.length || 0} total connected accounts`);
       
       if (data) {
         data.forEach(account => {
@@ -92,7 +78,7 @@ export function SquareTest() {
             Square Connection Test
           </h1>
           <p className="text-xl text-gray-600">
-            Connect test accounts to meet Square's requirements
+            View all connected Square test accounts
           </p>
         </div>
 
@@ -105,7 +91,7 @@ export function SquareTest() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#2B2C30]">
-              Connected Accounts ({connectedAccounts.length}/5)
+              All Connected Accounts ({connectedAccounts.length})
             </h2>
             <button
               onClick={fetchConnectedAccounts}
@@ -150,7 +136,7 @@ export function SquareTest() {
                 <div className="text-center py-8">
                   <p className="text-gray-600">No connected accounts found</p>
                   <p className="text-sm text-gray-500 mt-2">
-                    If you just connected an account, try refreshing the page.
+                    Connect a new account to get started.
                   </p>
                 </div>
               )}
