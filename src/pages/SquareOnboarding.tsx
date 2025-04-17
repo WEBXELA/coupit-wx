@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { ArrowRight } from 'lucide-react';
 
@@ -10,6 +10,7 @@ export function SquareOnboarding() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   
   // Get the application ID from environment variables
   const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
@@ -21,6 +22,12 @@ export function SquareOnboarding() {
   };
 
   useEffect(() => {
+    // Check for error in URL parameters
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(`Square connection error: ${errorParam}`);
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoading(false);
@@ -31,7 +38,7 @@ export function SquareOnboarding() {
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [searchParams]);
 
   const handleSignUp = async () => {
     try {
@@ -99,6 +106,7 @@ export function SquareOnboarding() {
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
       state: state,
       session: 'false', // Don't force login if user is already logged in
+      redirect_uri: `${window.location.origin}/square/callback`,
     });
 
     // Redirect to Square's OAuth page
@@ -131,6 +139,12 @@ export function SquareOnboarding() {
           </div>
 
           <div className="max-w-md mx-auto">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+                {error}
+              </div>
+            )}
+            
             {session ? (
               <button
                 onClick={handleSquareConnect}
@@ -155,9 +169,6 @@ export function SquareOnboarding() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
                   />
-                  {error && (
-                    <p className="text-red-500 text-sm">{error}</p>
-                  )}
                   <button
                     onClick={handleSignUp}
                     className="primary-button w-full flex items-center justify-center gap-2"

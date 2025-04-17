@@ -6,6 +6,10 @@
       - `id` (uuid, primary key, references auth.users)
       - `email` (text)
       - `utm_source` (text)
+      - `square_access_token` (text)
+      - `square_refresh_token` (text)
+      - `square_token_expires_at` (timestamp)
+      - `square_merchant_id` (text)
       - `created_at` (timestamp)
       - `updated_at` (timestamp)
 
@@ -18,6 +22,10 @@ CREATE TABLE IF NOT EXISTS profiles (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   email text NOT NULL,
   utm_source text,
+  square_access_token text,
+  square_refresh_token text,
+  square_token_expires_at timestamptz,
+  square_merchant_id text,
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
