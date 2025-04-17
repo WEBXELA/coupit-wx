@@ -100,13 +100,17 @@ export function SquareCallback() {
           return;
         }
 
+        // Calculate expiration timestamp properly
+        const expiresAt = new Date();
+        expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
+
         // Store the access token in Supabase
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
             square_access_token: tokenData.access_token,
             square_refresh_token: tokenData.refresh_token,
-            square_token_expires_at: new Date(Date.now() + tokenData.expires_in * 1000).toISOString(),
+            square_token_expires_at: expiresAt.toISOString(),
             square_merchant_id: tokenData.merchant_id,
           })
           .eq('id', user.id);
@@ -154,4 +158,4 @@ export function SquareCallback() {
       </div>
     </div>
   );
-} 
+}
