@@ -61,6 +61,8 @@ export function SquareCallback() {
           return;
         }
 
+        console.log('Current user:', user);
+
         // Exchange the authorization code for an access token
         const tokenResponse = await fetch('https://connect.squareup.com/oauth2/token', {
           method: 'POST',
@@ -120,6 +122,8 @@ export function SquareCallback() {
           setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
           return;
         }
+
+        console.log('Successfully stored Square credentials for user:', user.id);
 
         // Redirect to success page
         navigate('/square/success');

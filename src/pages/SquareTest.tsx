@@ -2,8 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 
+interface SquareAccount {
+  id: string;
+  email: string;
+  square_merchant_id: string;
+  square_token_expires_at: string;
+}
+
 export function SquareTest() {
-  const [connectedAccounts, setConnectedAccounts] = useState([]);
+  const [connectedAccounts, setConnectedAccounts] = useState<SquareAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -14,16 +21,31 @@ export function SquareTest() {
   const fetchConnectedAccounts = async () => {
     try {
       setLoading(true);
+      console.log('Fetching connected accounts...');
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at')
-        .not('square_merchant_id', 'is', null);
+        .or('square_merchant_id.not.is.null,square_access_token.not.is.null');
 
-      if (error) throw error;
-      setConnectedAccounts(data || []);
+      console.log('Database response:', { data, error });
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        console.log('No data returned from database');
+        setConnectedAccounts([]);
+        return;
+      }
+
+      console.log('Found accounts:', data);
+      setConnectedAccounts(data);
     } catch (error) {
       console.error('Error fetching connected accounts:', error);
-      setError('Failed to fetch connected accounts');
+      setError('Failed to fetch connected accounts. Please check the console for details.');
     } finally {
       setLoading(false);
     }
@@ -107,6 +129,9 @@ export function SquareTest() {
               {connectedAccounts.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-gray-600">No connected accounts found</p>
+                  <p className="text-sm text-gray-500 mt-2">
+                    If you just connected an account, try refreshing the page.
+                  </p>
                 </div>
               )}
             </div>
