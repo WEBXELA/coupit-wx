@@ -84,9 +84,52 @@ export function SquareOnboarding() {
     }
   };
 
-  const handleSquareConnect = () => {
+  const fetchConnectedSellers = async (userId) => {
+    try {
+      const response = await fetch(`https://api.squareup.com/v2/merchants/${userId}/sellers`, {
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch connected sellers');
+      }
+
+      const data = await response.json();
+      return data.sellers;
+    } catch (error) {
+      console.error('Error fetching connected sellers:', error.message);
+      setError('Failed to fetch connected sellers. Please try again.');
+      return [];
+    }
+  };
+
+  const handleSquareConnect = async () => {
     if (session?.user) {
-      window.location.href = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=${utmSource}&user_id=${session.user.id}`;
+      try {
+        const sellers = await fetchConnectedSellers(session.user.id);
+        if (sellers.length > 0) {
+          const { error: insertError } = await supabase
+            .from('connected_sellers')
+            .insert(sellers.map(seller => ({
+              user_id: session.user.id,
+              seller_id: seller.id,
+              seller_name: seller.name,
+              connected_at: new Date().toISOString()
+            })));
+
+          if (insertError) throw insertError;
+
+          window.location.href = `https://api.coupit.ai/v1/square/oauth/callback?utm_source=${utmSource}&user_id=${session.user.id}`;
+        } else {
+          setError('No connected sellers found. Please ensure your Square account is properly connected.');
+        }
+      } catch (error) {
+        console.error('Error during Square connect:', error.message);
+        setError('Failed to connect Square account. Please try again.');
+      }
     }
   };
 
