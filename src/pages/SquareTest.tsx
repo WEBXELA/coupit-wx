@@ -22,7 +22,7 @@ export function SquareTest() {
   const fetchConnectedAccounts = async () => {
     try {
       setLoading(true);
-
+      
       // First, get the current user
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
@@ -53,21 +53,6 @@ export function SquareTest() {
     }
   };
 
-  const handleConnectNew = () => {
-    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
-    sessionStorage.setItem('square_oauth_state', state);
-
-    const params = new URLSearchParams({
-      client_id: import.meta.env.VITE_SQUARE_APP_ID,
-      scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
-      state: state,
-      session: 'false',
-      redirect_uri: 'https://coupit.ai/square/callback',
-    });
-
-    window.location.href = `https://connect.squareup.com/oauth2/authorize?${params.toString()}`;
-  };
-
   return (
     <div className="min-h-screen bg-[#f7f7f7] pt-32 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
@@ -76,7 +61,7 @@ export function SquareTest() {
             Square Connection Test
           </h1>
           <p className="text-xl text-gray-600">
-            View all connected Square test accounts
+            Connect test accounts to meet Square's requirements
           </p>
         </div>
 
@@ -89,7 +74,7 @@ export function SquareTest() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#2B2C30]">
-              All Connected Accounts ({connectedAccounts.length})
+              Connected Accounts ({connectedAccounts.length}/5)
             </h2>
             <button
               onClick={fetchConnectedAccounts}
@@ -133,22 +118,10 @@ export function SquareTest() {
               {connectedAccounts.length === 0 && (
                 <div className="text-center py-8">
                   <p className="text-gray-600">No connected accounts found</p>
-                  <p className="text-sm text-gray-500 mt-2">
-                    Connect a new account to get started.
-                  </p>
                 </div>
               )}
             </div>
           )}
-        </div>
-
-        <div className="text-center">
-          <button
-            onClick={handleConnectNew}
-            className="bg-[#2B2C30] text-white px-8 py-3 rounded-lg hover:bg-opacity-90"
-          >
-            Connect New Account
-          </button>
         </div>
       </div>
     </div>
