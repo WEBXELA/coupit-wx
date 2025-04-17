@@ -7,12 +7,14 @@ interface SquareAccount {
   email: string;
   square_merchant_id: string;
   square_token_expires_at: string;
+  square_access_token: string | null;
 }
 
 export function SquareTest() {
   const [connectedAccounts, setConnectedAccounts] = useState<SquareAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [debugInfo, setDebugInfo] = useState<string>('');
 
   useEffect(() => {
     fetchConnectedAccounts();
@@ -21,42 +23,56 @@ export function SquareTest() {
   const fetchConnectedAccounts = async () => {
     try {
       setLoading(true);
-      console.log('Fetching connected accounts...');
+      setError('');
+      setDebugInfo('Fetching connected accounts...');
       
+      // First, get the current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        setDebugInfo(prevInfo => `${prevInfo}\nUser error: ${userError.message}`);
+        throw new Error(`Authentication error: ${userError.message}`);
+      }
+
+      if (!user) {
+        setDebugInfo(prevInfo => `${prevInfo}\nNo user found - not authenticated`);
+        throw new Error('Not authenticated. Please log in first.');
+      }
+
+      setDebugInfo(prevInfo => `${prevInfo}\nAuthenticated as: ${user.email}`);
+
+      // Fetch profiles with Square connections
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, email, square_merchant_id, square_token_expires_at')
-        .or('square_merchant_id.not.is.null,square_access_token.not.is.null');
-
-      console.log('Database response:', { data, error });
+        .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
+        .not('square_access_token', 'is', null);
 
       if (error) {
-        console.error('Database error:', error);
+        setDebugInfo(prevInfo => `${prevInfo}\nDatabase error: ${error.message}`);
         throw error;
       }
 
-      if (!data) {
-        console.log('No data returned from database');
-        setConnectedAccounts([]);
-        return;
+      setDebugInfo(prevInfo => `${prevInfo}\nFound ${data?.length || 0} connected accounts`);
+      
+      if (data) {
+        data.forEach(account => {
+          setDebugInfo(prevInfo => `${prevInfo}\nAccount: ${account.email} (Merchant ID: ${account.square_merchant_id || 'None'})`);
+        });
       }
 
-      console.log('Found accounts:', data);
-      setConnectedAccounts(data);
+      setConnectedAccounts(data || []);
     } catch (error) {
       console.error('Error fetching connected accounts:', error);
-      setError('Failed to fetch connected accounts. Please check the console for details.');
+      setError(error.message || 'Failed to fetch connected accounts');
     } finally {
       setLoading(false);
     }
   };
 
   const handleConnectNew = () => {
-    // Generate and store state
     const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
     sessionStorage.setItem('square_oauth_state', state);
 
-    // Build the OAuth URL with required parameters
     const params = new URLSearchParams({
       client_id: import.meta.env.VITE_SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
@@ -116,12 +132,16 @@ export function SquareTest() {
                     <div>
                       <p className="font-medium text-[#2B2C30]">{account.email}</p>
                       <p className="text-sm text-gray-500">
-                        Merchant ID: {account.square_merchant_id}
+                        Merchant ID: {account.square_merchant_id || 'Not available'}
                       </p>
                     </div>
                   </div>
                   <div className="text-sm text-gray-500">
-                    Expires: {new Date(account.square_token_expires_at).toLocaleDateString()}
+                    {account.square_token_expires_at ? (
+                      `Expires: ${new Date(account.square_token_expires_at).toLocaleDateString()}`
+                    ) : (
+                      'No expiration date'
+                    )}
                   </div>
                 </div>
               ))}
@@ -138,6 +158,11 @@ export function SquareTest() {
           )}
         </div>
 
+        {/* Debug Information */}
+        <div className="bg-gray-900 text-gray-200 rounded-lg p-4 mb-8 font-mono text-sm overflow-x-auto">
+          <pre>{debugInfo}</pre>
+        </div>
+
         <div className="text-center">
           <button
             onClick={handleConnectNew}
@@ -149,4 +174,4 @@ export function SquareTest() {
       </div>
     </div>
   );
-} 
+}
