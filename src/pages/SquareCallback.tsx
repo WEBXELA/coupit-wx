@@ -13,16 +13,32 @@ export function SquareCallback() {
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
+        const error_description = searchParams.get('error_description');
+
+        console.log('Square Callback Params:', {
+          code,
+          state,
+          error,
+          error_description
+        });
 
         // Check for errors
         if (error) {
-          console.error('Square OAuth error:', error);
-          navigate('/square/onboarding?error=' + error);
+          console.error('Square OAuth error:', error, error_description);
+          navigate(`/square/onboarding?error=${error}&error_description=${error_description}`);
+          return;
+        }
+
+        if (!code) {
+          console.error('No authorization code received');
+          navigate('/square/onboarding?error=no_code');
           return;
         }
 
         // Validate state parameter
         const storedState = sessionStorage.getItem('square_oauth_state');
+        console.log('State validation:', { received: state, stored: storedState });
+        
         if (!state || state !== storedState) {
           console.error('Invalid state parameter');
           navigate('/square/onboarding?error=invalid_state');
@@ -31,6 +47,14 @@ export function SquareCallback() {
 
         // Clear the stored state
         sessionStorage.removeItem('square_oauth_state');
+
+        // Get current user
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          console.error('User not authenticated:', userError);
+          navigate('/square/onboarding?error=not_authenticated');
+          return;
+        }
 
         // Exchange the authorization code for an access token
         const response = await fetch('https://connect.squareup.com/oauth2/token', {
@@ -43,14 +67,23 @@ export function SquareCallback() {
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
             grant_type: 'authorization_code',
+            redirect_uri: `${window.location.origin}/square/callback`,
           }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to exchange code for token');
+          const errorData = await response.json();
+          console.error('Token exchange error:', errorData);
+          throw new Error(`Failed to exchange code for token: ${JSON.stringify(errorData)}`);
         }
 
         const data = await response.json();
+        console.log('Token exchange successful:', { 
+          access_token: data.access_token ? 'present' : 'missing',
+          refresh_token: data.refresh_token ? 'present' : 'missing',
+          expires_in: data.expires_in,
+          merchant_id: data.merchant_id
+        });
 
         // Store the access token in Supabase
         const { error: updateError } = await supabase
@@ -61,9 +94,10 @@ export function SquareCallback() {
             square_token_expires_at: new Date(Date.now() + data.expires_in * 1000).toISOString(),
             square_merchant_id: data.merchant_id,
           })
-          .eq('id', (await supabase.auth.getUser()).data.user?.id);
+          .eq('id', user.id);
 
         if (updateError) {
+          console.error('Database update error:', updateError);
           throw updateError;
         }
 
@@ -71,7 +105,7 @@ export function SquareCallback() {
         navigate('/square/success');
       } catch (error) {
         console.error('Error handling Square callback:', error);
-        navigate('/square/onboarding?error=callback_error');
+        navigate(`/square/onboarding?error=callback_error&details=${encodeURIComponent(error.message)}`);
       }
     };
 

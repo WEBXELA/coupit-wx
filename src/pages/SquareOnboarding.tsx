@@ -101,12 +101,19 @@ export function SquareOnboarding() {
     sessionStorage.setItem('square_oauth_state', state);
 
     // Build the OAuth URL with required parameters
+    const redirectUri = 'https://coupit.ai/square/callback';
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
       state: state,
       session: 'false', // Don't force login if user is already logged in
-      redirect_uri: `${window.location.origin}/square/callback`,
+      redirect_uri: redirectUri,
+    });
+
+    console.log('Initiating Square OAuth with:', {
+      client_id: SQUARE_APP_ID,
+      redirect_uri: redirectUri,
+      state: state
     });
 
     // Redirect to Square's OAuth page
