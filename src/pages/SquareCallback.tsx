@@ -66,58 +66,68 @@ export function SquareCallback() {
         addDebugLog(`Authenticated user: ${user.email}`);
 
         // Exchange the authorization code for an access token
-        const tokenResponse = await fetch('https://connect.squareup.com/oauth2/token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Square-Version': '2024-02-22'
-          },
-          body: JSON.stringify({
-            client_id: import.meta.env.VITE_SQUARE_APP_ID,
-            client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
-            code,
-            grant_type: 'authorization_code'
-          }),
-        });
+        const redirectUri = 'https://coupit.ai/square/callback';
+        addDebugLog(`Using redirect URI: ${redirectUri}`);
 
-        const tokenData = await tokenResponse.json();
-        
-        if (!tokenResponse.ok) {
-          addDebugLog(`Token exchange error: ${JSON.stringify(tokenData)}`);
-          setErrorMessage(`Failed to exchange code for token: ${JSON.stringify(tokenData)}`);
-          return;
-        }
-
-        addDebugLog('Token exchange successful');
-        addDebugLog(`Received merchant ID: ${tokenData.merchant_id || 'missing'}`);
-
-        // Calculate expiration timestamp
-        const expiresAt = new Date();
-        expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
-
-        // Store the access token in Supabase
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .upsert({
-            id: user.id,
-            email: user.email,
-            square_access_token: tokenData.access_token,
-            square_refresh_token: tokenData.refresh_token,
-            square_token_expires_at: expiresAt.toISOString(),
-            square_merchant_id: tokenData.merchant_id,
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'id'
+        try {
+          const tokenResponse = await fetch('https://connect.squareup.com/oauth2/token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Square-Version': '2024-02-22'
+            },
+            body: JSON.stringify({
+              client_id: import.meta.env.VITE_SQUARE_APP_ID,
+              client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
+              code,
+              redirect_uri: redirectUri,
+              grant_type: 'authorization_code'
+            }),
           });
 
-        if (updateError) {
-          addDebugLog(`Database update error: ${updateError.message}`);
-          setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
-          return;
-        }
+          addDebugLog(`Token response status: ${tokenResponse.status}`);
+          const tokenData = await tokenResponse.json();
+          
+          if (!tokenResponse.ok) {
+            addDebugLog(`Token exchange error: ${JSON.stringify(tokenData)}`);
+            setErrorMessage(`Failed to exchange code for token: ${JSON.stringify(tokenData)}`);
+            return;
+          }
 
-        addDebugLog('Successfully stored Square credentials');
-        navigate('/square/success');
+          addDebugLog('Token exchange successful');
+          addDebugLog(`Received merchant ID: ${tokenData.merchant_id || 'missing'}`);
+
+          // Calculate expiration timestamp
+          const expiresAt = new Date();
+          expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
+
+          // Store the access token in Supabase
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              email: user.email,
+              square_access_token: tokenData.access_token,
+              square_refresh_token: tokenData.refresh_token,
+              square_token_expires_at: expiresAt.toISOString(),
+              square_merchant_id: tokenData.merchant_id,
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'id'
+            });
+
+          if (updateError) {
+            addDebugLog(`Database update error: ${updateError.message}`);
+            setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
+            return;
+          }
+
+          addDebugLog('Successfully stored Square credentials');
+          navigate('/square/success');
+        } catch (fetchError) {
+          addDebugLog(`Fetch error: ${fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'}`);
+          throw fetchError;
+        }
       } catch (error) {
         const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
         addDebugLog(`Error: ${errorMsg}`);
