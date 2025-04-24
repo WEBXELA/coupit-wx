@@ -7,6 +7,80 @@ interface SquareApiCall {
   environment: 'production' | 'sandbox';
 }
 
+interface SquareApiOptions {
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+  body?: any;
+  environment?: 'production' | 'sandbox';
+}
+
+export async function makeSquareApiCall(endpoint: string, options: SquareApiOptions = {}) {
+  const { method = 'GET', body, environment = 'production' } = options;
+  
+  try {
+    // Get the current user's Square access token
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('square_access_token')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error('Failed to fetch Square credentials');
+    }
+
+    if (!profile?.square_access_token) {
+      throw new Error('Square access token not found');
+    }
+
+    console.log('Making Square API call:', {
+      endpoint,
+      method,
+      environment,
+      hasToken: !!profile.square_access_token
+    });
+
+    // Make the API call to Square
+    const response = await fetch(`https://connect.squareup.com${endpoint}`, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${profile.square_access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+
+    // Track the API call
+    await trackSquareApiCall({
+      endpoint,
+      method,
+      status_code: response.status,
+      environment,
+    });
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error('Square API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        data: responseData
+      });
+      throw new Error(`Square API error: ${response.status} ${response.statusText} - ${JSON.stringify(responseData)}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error('Square API call error:', error);
+    throw error;
+  }
+}
+
 export async function trackSquareApiCall(apiCall: SquareApiCall) {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();

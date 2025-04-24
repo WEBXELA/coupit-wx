@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Loader2 } from 'lucide-react';
+import { makeSquareApiCall } from '../lib/square';
 
 interface SquareAccount {
   id: string;
@@ -14,6 +15,11 @@ export function SquareTest() {
   const [connectedAccounts, setConnectedAccounts] = useState<SquareAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [testStatus, setTestStatus] = useState<{
+    loading: boolean;
+    success: boolean;
+    message: string;
+  }>({ loading: false, success: false, message: '' });
 
   useEffect(() => {
     fetchConnectedAccounts();
@@ -53,6 +59,33 @@ export function SquareTest() {
     }
   };
 
+  const testSquareConnection = async () => {
+    try {
+      setTestStatus({ loading: true, success: false, message: '' });
+      
+      // Make a test API call to Square
+      const response = await makeSquareApiCall('/v2/merchants/me', {
+        method: 'GET',
+        environment: 'production'
+      });
+
+      setTestStatus({
+        loading: false,
+        success: true,
+        message: 'Successfully connected to Square! Your account is now verified.'
+      });
+
+      // Refresh the connected accounts list
+      await fetchConnectedAccounts();
+    } catch (error: any) {
+      setTestStatus({
+        loading: false,
+        success: false,
+        message: `Error: ${error.message}`
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f7] pt-32 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
@@ -61,7 +94,7 @@ export function SquareTest() {
             Square Connection Test
           </h1>
           <p className="text-xl text-gray-600">
-            Connect test accounts to meet Square's requirements
+            Test your Square connection and verify your account
           </p>
         </div>
 
@@ -117,9 +150,43 @@ export function SquareTest() {
 
               {connectedAccounts.length === 0 && (
                 <div className="text-center py-8">
+                  <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                   <p className="text-gray-600">No connected accounts found</p>
                 </div>
               )}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-lg p-8">
+          <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">
+            Test Square Connection
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Click the button below to test your Square connection. This will make a test API call to Square
+            and verify your account is properly connected.
+          </p>
+
+          <button
+            onClick={testSquareConnection}
+            disabled={testStatus.loading}
+            className="primary-button flex items-center justify-center gap-2"
+          >
+            {testStatus.loading ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Testing Connection...
+              </>
+            ) : (
+              'Test Connection'
+            )}
+          </button>
+
+          {testStatus.message && (
+            <div className={`mt-4 p-4 rounded-lg ${
+              testStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+            }`}>
+              {testStatus.message}
             </div>
           )}
         </div>
