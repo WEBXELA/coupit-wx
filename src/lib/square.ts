@@ -155,4 +155,50 @@ export async function verifyConnectedSellers() {
     console.error('Error verifying connected sellers:', error);
     return [];
   }
+}
+
+export async function checkSquareConnection() {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('Please log in first');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('square_access_token, square_merchant_id, square_token_expires_at')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError) {
+      throw new Error('Failed to fetch Square credentials');
+    }
+
+    if (!profile?.square_access_token) {
+      throw new Error('No Square access token found. Please connect your Square account first.');
+    }
+
+    if (!profile?.square_merchant_id) {
+      throw new Error('No Square merchant ID found. Please connect your Square account first.');
+    }
+
+    // Check if token is expired
+    if (profile.square_token_expires_at) {
+      const expiresAt = new Date(profile.square_token_expires_at);
+      if (expiresAt < new Date()) {
+        throw new Error('Square access token has expired. Please reconnect your Square account.');
+      }
+    }
+
+    return {
+      isConnected: true,
+      merchantId: profile.square_merchant_id,
+      expiresAt: profile.square_token_expires_at
+    };
+  } catch (error: any) {
+    return {
+      isConnected: false,
+      error: error.message
+    };
+  }
 } 

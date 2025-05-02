@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw, Loader2 } from 'lucide-react';
-import { makeSquareApiCall } from '../lib/square';
+import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight } from 'lucide-react';
+import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
 
 interface SquareAccount {
   id: string;
@@ -12,18 +13,40 @@ interface SquareAccount {
 }
 
 export function SquareTest() {
+  const navigate = useNavigate();
   const [connectedAccounts, setConnectedAccounts] = useState<SquareAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [connectionStatus, setConnectionStatus] = useState<{
+    isConnected: boolean;
+    error?: string;
+    merchantId?: string;
+    expiresAt?: string;
+  }>({ isConnected: false });
   const [testStatus, setTestStatus] = useState<{
     loading: boolean;
     success: boolean;
     message: string;
+    details?: string;
   }>({ loading: false, success: false, message: '' });
 
   useEffect(() => {
+    checkConnectionStatus();
     fetchConnectedAccounts();
   }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      const status = await checkSquareConnection();
+      setConnectionStatus(status);
+    } catch (error: any) {
+      console.error('Error checking connection status:', error);
+      setConnectionStatus({
+        isConnected: false,
+        error: error.message
+      });
+    }
+  };
 
   const fetchConnectedAccounts = async () => {
     try {
@@ -61,27 +84,61 @@ export function SquareTest() {
 
   const testSquareConnection = async () => {
     try {
-      setTestStatus({ loading: true, success: false, message: '' });
+      setTestStatus({ loading: true, success: false, message: 'Testing connection...' });
       
+      // First verify we have a valid user and Square token
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('Please log in first');
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('square_access_token, square_merchant_id')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        throw new Error('Failed to fetch Square credentials');
+      }
+
+      if (!profile?.square_access_token) {
+        throw new Error('No Square access token found. Please connect your Square account first.');
+      }
+
+      if (!profile?.square_merchant_id) {
+        throw new Error('No Square merchant ID found. Please connect your Square account first.');
+      }
+
       // Make a test API call to Square
       const response = await makeSquareApiCall('/v2/merchants/me', {
         method: 'GET',
         environment: 'production'
       });
 
+      console.log('Square API Response:', response);
+
+      if (!response || !response.merchant) {
+        throw new Error('Invalid response from Square API');
+      }
+
       setTestStatus({
         loading: false,
         success: true,
-        message: 'Successfully connected to Square! Your account is now verified.'
+        message: 'Successfully connected to Square!',
+        details: `Merchant ID: ${response.merchant.id}`
       });
 
-      // Refresh the connected accounts list
+      // Refresh the connection status and accounts list
+      await checkConnectionStatus();
       await fetchConnectedAccounts();
     } catch (error: any) {
+      console.error('Square connection test error:', error);
       setTestStatus({
         loading: false,
         success: false,
-        message: `Error: ${error.message}`
+        message: 'Connection test failed',
+        details: error.message || 'Unknown error occurred'
       });
     }
   };
@@ -101,6 +158,19 @@ export function SquareTest() {
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
             {error}
+          </div>
+        )}
+
+        {!connectionStatus.isConnected && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-600 px-4 py-3 rounded-lg mb-6">
+            <p className="font-medium">Square account not connected</p>
+            <p className="text-sm mt-1">{connectionStatus.error}</p>
+            <button
+              onClick={() => navigate('/square/onboarding')}
+              className="mt-3 flex items-center gap-2 text-yellow-700 hover:text-yellow-800"
+            >
+              Connect Square Account <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 
@@ -152,44 +222,55 @@ export function SquareTest() {
                 <div className="text-center py-8">
                   <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
                   <p className="text-gray-600">No connected accounts found</p>
+                  <button
+                    onClick={() => navigate('/square/onboarding')}
+                    className="mt-4 flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
+                  >
+                    Connect Square Account <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </div>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">
-            Test Square Connection
-          </h2>
-          <p className="text-gray-600 mb-6">
-            Click the button below to test your Square connection. This will make a test API call to Square
-            and verify your account is properly connected.
-          </p>
+        {connectionStatus.isConnected && (
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">
+              Test Square Connection
+            </h2>
+            <p className="text-gray-600 mb-6">
+              Click the button below to test your Square connection. This will make a test API call to Square
+              and verify your account is properly connected.
+            </p>
 
-          <button
-            onClick={testSquareConnection}
-            disabled={testStatus.loading}
-            className="primary-button flex items-center justify-center gap-2"
-          >
-            {testStatus.loading ? (
-              <>
-                <Loader2 className="w-5 h-5 animate-spin" />
-                Testing Connection...
-              </>
-            ) : (
-              'Test Connection'
+            <button
+              onClick={testSquareConnection}
+              disabled={testStatus.loading}
+              className="primary-button flex items-center justify-center gap-2"
+            >
+              {testStatus.loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  Testing Connection...
+                </>
+              ) : (
+                'Test Connection'
+              )}
+            </button>
+
+            {testStatus.message && (
+              <div className={`mt-4 p-4 rounded-lg ${
+                testStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+              }`}>
+                <p className="font-medium">{testStatus.message}</p>
+                {testStatus.details && (
+                  <p className="text-sm mt-2">{testStatus.details}</p>
+                )}
+              </div>
             )}
-          </button>
-
-          {testStatus.message && (
-            <div className={`mt-4 p-4 rounded-lg ${
-              testStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-            }`}>
-              {testStatus.message}
-            </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
