@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export function SquareSuccess() {
@@ -15,12 +15,20 @@ export function SquareSuccess() {
         <p className="text-gray-600 mb-8">
           Your Square account has been successfully connected to Coupit. You can now start using our AI-powered retail solutions.
         </p>
-        <button
-          onClick={() => navigate('/dashboard')}
-          className="bg-[#2B2C30] text-white px-6 py-3 rounded-lg hover:bg-opacity-90"
-        >
-          Go to Dashboard
-        </button>
+        <div className="space-y-4">
+          <button
+            onClick={() => navigate('/square/api-test')}
+            className="w-full bg-[#2B2C30] text-white px-6 py-3 rounded-lg hover:bg-opacity-90 flex items-center justify-center gap-2"
+          >
+            Test Square API <ArrowRight className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="w-full bg-white text-[#2B2C30] px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2"
+          >
+            Go to Dashboard <ArrowRight className="w-5 h-5" />
+          </button>
+        </div>
       </div>
     </div>
   );
