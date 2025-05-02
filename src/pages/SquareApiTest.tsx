@@ -1,56 +1,90 @@
-import React, { useState } from 'react';
-import { makeSquareApiCall } from '../lib/square';
-import { Loader2, CheckCircle, XCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
+import { Loader2, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 
 export function SquareApiTest() {
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<{
+  const navigate = useNavigate();
+  const [connectionStatus, setConnectionStatus] = useState<{
+    isConnected: boolean;
+    error?: string;
+    merchantId?: string;
+  }>({ isConnected: false });
+  const [testStatus, setTestStatus] = useState<{
+    loading: boolean;
     success: boolean;
     message: string;
     details?: string;
-  } | null>(null);
+  }>({ loading: false, success: false, message: '' });
+
+  useEffect(() => {
+    checkConnectionStatus();
+  }, []);
+
+  const checkConnectionStatus = async () => {
+    try {
+      const status = await checkSquareConnection();
+      setConnectionStatus(status);
+    } catch (error: any) {
+      console.error('Error checking connection status:', error);
+      setConnectionStatus({
+        isConnected: false,
+        error: error.message
+      });
+    }
+  };
 
   const testApiCalls = async () => {
     try {
-      setLoading(true);
-      setResult(null);
+      setTestStatus({ loading: true, success: false, message: 'Making test API calls...' });
 
-      // 1. Create a test customer (write API call)
+      // 1. Create a test customer
       const customerResponse = await makeSquareApiCall('/v2/customers', {
         method: 'POST',
         body: {
           given_name: 'Test',
           family_name: 'Customer',
-          email_address: 'test@example.com',
+          email_address: `test${Date.now()}@example.com`,
           note: 'Test customer created for Square verification'
         },
         environment: 'production'
       });
 
-      console.log('Customer created:', customerResponse);
-
-      // 2. Create a test catalog item (write API call)
+      // 2. Create a test catalog item
       const catalogResponse = await makeSquareApiCall('/v2/catalog/object', {
         method: 'POST',
         body: {
-          type: 'ITEM',
-          item_data: {
-            name: 'Test Item',
-            description: 'Test item created for Square verification',
-            visibility: 'PRIVATE'
+          idempotency_key: `test-item-${Date.now()}`,
+          object: {
+            type: 'ITEM',
+            id: `#test-item-${Date.now()}`,
+            item_data: {
+              name: 'Test Item',
+              description: 'Test item created for Square verification',
+              visibility: 'PRIVATE'
+            }
           }
         },
         environment: 'production'
       });
 
-      console.log('Catalog item created:', catalogResponse);
+      // 3. Get locations to use in order creation
+      const locationsResponse = await makeSquareApiCall('/v2/locations', {
+        method: 'GET',
+        environment: 'production'
+      });
 
-      // 3. Create a test order (write API call)
+      if (!locationsResponse.locations || locationsResponse.locations.length === 0) {
+        throw new Error('No locations found in your Square account');
+      }
+
+      // 4. Create a test order
       const orderResponse = await makeSquareApiCall('/v2/orders', {
         method: 'POST',
         body: {
+          idempotency_key: `test-order-${Date.now()}`,
           order: {
-            location_id: 'main', // This will be replaced with actual location ID
+            location_id: locationsResponse.locations[0].id,
             line_items: [
               {
                 name: 'Test Order Item',
@@ -66,22 +100,20 @@ export function SquareApiTest() {
         environment: 'production'
       });
 
-      console.log('Order created:', orderResponse);
-
-      setResult({
+      setTestStatus({
+        loading: false,
         success: true,
         message: 'Successfully made test API calls to Square',
-        details: `Created test customer, catalog item, and order in production environment`
+        details: 'Created test customer, catalog item, and order in production environment'
       });
     } catch (error: any) {
       console.error('API test error:', error);
-      setResult({
+      setTestStatus({
+        loading: false,
         success: false,
         message: 'Failed to make test API calls',
-        details: error.message || 'Unknown error occurred'
+        details: error.message
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -96,6 +128,19 @@ export function SquareApiTest() {
             Make test API calls to verify your Square connection
           </p>
         </div>
+
+        {!connectionStatus.isConnected && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-600 px-6 py-4 rounded-lg mb-8">
+            <p className="font-medium">Square account not connected</p>
+            <p className="text-sm mt-1">{connectionStatus.error}</p>
+            <button
+              onClick={() => navigate('/square/onboarding')}
+              className="mt-3 flex items-center gap-2 text-yellow-700 hover:text-yellow-800"
+            >
+              Connect Square Account <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="mb-8">
@@ -117,10 +162,14 @@ export function SquareApiTest() {
 
           <button
             onClick={testApiCalls}
-            disabled={loading}
-            className="primary-button flex items-center justify-center gap-2"
+            disabled={!connectionStatus.isConnected || testStatus.loading}
+            className={`flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-medium transition-colors ${
+              connectionStatus.isConnected
+                ? 'bg-[#2B2C30] text-white hover:bg-opacity-90'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
           >
-            {loading ? (
+            {testStatus.loading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
                 Making API Calls...
@@ -130,20 +179,20 @@ export function SquareApiTest() {
             )}
           </button>
 
-          {result && (
+          {testStatus.message && (
             <div className={`mt-6 p-4 rounded-lg ${
-              result.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+              testStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
             }`}>
               <div className="flex items-start gap-3">
-                {result.success ? (
+                {testStatus.success ? (
                   <CheckCircle className="w-6 h-6 mt-1" />
                 ) : (
                   <XCircle className="w-6 h-6 mt-1" />
                 )}
                 <div>
-                  <p className="font-medium">{result.message}</p>
-                  {result.details && (
-                    <p className="text-sm mt-2">{result.details}</p>
+                  <p className="font-medium">{testStatus.message}</p>
+                  {testStatus.details && (
+                    <p className="text-sm mt-2">{testStatus.details}</p>
                   )}
                 </div>
               </div>
@@ -153,4 +202,4 @@ export function SquareApiTest() {
       </div>
     </div>
   );
-} 
+}
