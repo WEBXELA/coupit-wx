@@ -39,18 +39,40 @@ export function SquareCallback() {
         }
 
         // Validate state parameter
-        const storedState = sessionStorage.getItem('square_oauth_state');
-        console.log('State validation:', { received: state, stored: storedState });
-        
-        if (!state || state !== storedState) {
-          const errorMsg = 'Invalid state parameter - possible CSRF attack';
+        const storedStateData = localStorage.getItem('square_oauth_state');
+        if (!storedStateData) {
+          const errorMsg = 'No stored state found - possible CSRF attack';
           console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
 
-        // Clear the stored state
-        sessionStorage.removeItem('square_oauth_state');
+        try {
+          const { value: storedState, timestamp } = JSON.parse(storedStateData);
+          
+          // Check if state is expired (older than 10 minutes)
+          if (Date.now() - timestamp > 10 * 60 * 1000) {
+            const errorMsg = 'State parameter expired - please try again';
+            console.error(errorMsg);
+            setErrorMessage(errorMsg);
+            return;
+          }
+
+          if (!state || state !== storedState) {
+            const errorMsg = 'Invalid state parameter - possible CSRF attack';
+            console.error(errorMsg, { received: state, stored: storedState });
+            setErrorMessage(errorMsg);
+            return;
+          }
+        } catch (parseError) {
+          const errorMsg = 'Invalid stored state format';
+          console.error(errorMsg, parseError);
+          setErrorMessage(errorMsg);
+          return;
+        }
+
+        // Clear the stored state immediately after validation
+        localStorage.removeItem('square_oauth_state');
 
         // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -94,9 +116,16 @@ export function SquareCallback() {
           merchant_id: tokenData.merchant_id
         });
 
-        // Verify the merchant ID
+        // Verify the merchant ID and tokens
         if (!tokenData.merchant_id) {
           const errorMsg = 'No merchant ID received from Square';
+          console.error(errorMsg);
+          setErrorMessage(errorMsg);
+          return;
+        }
+
+        if (!tokenData.access_token || !tokenData.refresh_token) {
+          const errorMsg = 'Incomplete token data received from Square';
           console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
@@ -114,6 +143,7 @@ export function SquareCallback() {
             square_refresh_token: tokenData.refresh_token,
             square_token_expires_at: expiresAt.toISOString(),
             square_merchant_id: tokenData.merchant_id,
+            square_connected_at: new Date().toISOString(),
           })
           .eq('id', user.id);
 
@@ -123,12 +153,32 @@ export function SquareCallback() {
           return;
         }
 
-        console.log('Successfully stored Square credentials for user:', user.id);
+        // Verify the connection by making a test API call
+        try {
+          const testResponse = await fetch('https://connect.squareup.com/v2/merchants/me', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${tokenData.access_token}`,
+              'Content-Type': 'application/json',
+            },
+          });
 
-        // Redirect to success page
-        navigate('/square/success');
+          if (!testResponse.ok) {
+            throw new Error('Failed to verify Square connection');
+          }
+
+          const testData = await testResponse.json();
+          console.log('Successfully verified Square connection:', testData);
+
+          // Redirect to success page
+          navigate('/square/success');
+        } catch (error) {
+          console.error('Error verifying Square connection:', error);
+          setErrorMessage('Failed to verify Square connection. Please try again.');
+          return;
+        }
       } catch (error) {
-        const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
         console.error('Error handling Square callback:', error);
         setErrorMessage(errorMsg);
       }
