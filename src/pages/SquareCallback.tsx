@@ -62,6 +62,7 @@ export function SquareCallback() {
         }
 
         const tokenData = await tokenResponse.json();
+        console.log('Token exchange successful:', tokenData);
 
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
