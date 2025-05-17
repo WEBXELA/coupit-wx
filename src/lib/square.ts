@@ -18,6 +18,7 @@ async function renewSquareToken(refreshToken: string) {
     const response = await fetch('https://connect.squareup.com/oauth2/token', {
       method: 'POST',
       headers: {
+        'Square-Version': '2024-01-17',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -137,18 +138,11 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
       }
     }
 
-    console.log('Making Square API call:', {
-      endpoint,
-      method,
-      environment,
-      hasToken: !!accessToken,
-      merchantId: profile.square_merchant_id
-    });
-
     // Make the API call to Square
     const response = await fetch(`https://connect.squareup.com${endpoint}`, {
       method,
       headers: {
+        'Square-Version': '2024-01-17',
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
@@ -182,11 +176,6 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
         throw new Error('Square access token is invalid. Please reconnect your Square account.');
       }
       
-      console.error('Square API error response:', {
-        status: response.status,
-        statusText: response.statusText,
-        data: responseData
-      });
       throw new Error(`Square API error: ${response.status} ${response.statusText} - ${JSON.stringify(responseData)}`);
     }
 
@@ -342,6 +331,7 @@ export async function checkSquareConnection() {
       const response = await fetch('https://connect.squareup.com/v2/merchants/me', {
         method: 'GET',
         headers: {
+          'Square-Version': '2024-01-17',
           'Authorization': `Bearer ${profile.square_access_token}`,
           'Content-Type': 'application/json',
         },
@@ -375,4 +365,4 @@ export async function checkSquareConnection() {
       error: error.message
     };
   }
-} 
+}

@@ -16,13 +16,6 @@ export function SquareCallback() {
         const error = searchParams.get('error');
         const error_description = searchParams.get('error_description');
 
-        console.log('Square Callback Params:', {
-          code,
-          state,
-          error,
-          error_description
-        });
-
         // Check for errors
         if (error) {
           const errorMsg = `Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`;
@@ -94,7 +87,7 @@ export function SquareCallback() {
             client_id: import.meta.env.VITE_SQUARE_APP_ID,
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
-            grant_type: 'authorization_code',
+            grant_type: 'authorization_code'
           }),
         });
 
@@ -107,12 +100,6 @@ export function SquareCallback() {
         }
 
         const tokenData = await tokenResponse.json();
-        console.log('Token exchange successful:', { 
-          access_token: tokenData.access_token ? 'present' : 'missing',
-          refresh_token: tokenData.refresh_token ? 'present' : 'missing',
-          expires_in: tokenData.expires_in,
-          merchant_id: tokenData.merchant_id
-        });
 
         // Verify the merchant ID and tokens
         if (!tokenData.merchant_id) {
