@@ -49,7 +49,6 @@ async function renewSquareToken(refreshToken: string) {
               square_access_token: null,
               square_refresh_token: null,
               square_token_expires_at: null,
-              // Keep the merchant ID for reconnection
               square_merchant_id: profile?.square_merchant_id || null,
             })
             .eq('id', user.id);
@@ -74,9 +73,9 @@ async function renewSquareToken(refreshToken: string) {
       .from('profiles')
       .update({
         square_access_token: responseData.access_token,
-        square_refresh_token: responseData.refresh_token || refreshToken, // Keep old refresh token if new one not provided
+        square_refresh_token: responseData.refresh_token || refreshToken,
         square_token_expires_at: expiresAt.toISOString(),
-        square_connected_at: new Date().toISOString(), // Update connection timestamp
+        square_connected_at: new Date().toISOString(),
       })
       .eq('id', user.id);
 
@@ -86,7 +85,6 @@ async function renewSquareToken(refreshToken: string) {
 
     return responseData.access_token;
   } catch (error) {
-    console.error('Error renewing Square token:', error);
     throw error;
   }
 }
@@ -108,7 +106,6 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
       .single();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
       throw new Error('Failed to fetch Square credentials');
     }
 
@@ -181,7 +178,6 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
 
     return responseData;
   } catch (error) {
-    console.error('Square API call error:', error);
     throw error;
   }
 }
@@ -191,7 +187,6 @@ export async function trackSquareApiCall(apiCall: SquareApiCall) {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
     if (userError || !user) {
-      console.error('User not authenticated');
       return;
     }
 
@@ -203,10 +198,10 @@ export async function trackSquareApiCall(apiCall: SquareApiCall) {
       });
 
     if (error) {
-      console.error('Error tracking API call:', error);
+      throw error;
     }
   } catch (error) {
-    console.error('Unexpected error tracking API call:', error);
+    throw error;
   }
 }
 
@@ -234,8 +229,7 @@ export async function verifyConnectedSellers() {
         .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
       if (apiCallsError) {
-        console.error(`Error checking API calls for profile ${profile.id}:`, apiCallsError);
-        continue;
+        throw apiCallsError;
       }
 
       // Check if there are any non-ListLocations API calls
@@ -257,8 +251,7 @@ export async function verifyConnectedSellers() {
 
     return activeSellers;
   } catch (error) {
-    console.error('Error verifying connected sellers:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -312,7 +305,6 @@ export async function checkSquareConnection() {
           expiresAt: updatedProfile.square_token_expires_at
         };
       } catch (renewError) {
-        console.error('Failed to renew token:', renewError);
         // Clear invalid tokens but keep merchant ID
         await supabase
           .from('profiles')
@@ -347,7 +339,6 @@ export async function checkSquareConnection() {
         expiresAt: profile.square_token_expires_at
       };
     } catch (error) {
-      console.error('Error verifying Square token:', error);
       // Clear invalid tokens but keep merchant ID
       await supabase
         .from('profiles')

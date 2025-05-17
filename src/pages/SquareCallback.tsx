@@ -19,14 +19,12 @@ export function SquareCallback() {
         // Check for errors
         if (error) {
           const errorMsg = `Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`;
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
 
         if (!code) {
           const errorMsg = 'No authorization code received from Square';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -35,7 +33,6 @@ export function SquareCallback() {
         const storedStateData = localStorage.getItem('square_oauth_state');
         if (!storedStateData) {
           const errorMsg = 'No stored state found - possible CSRF attack';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -46,20 +43,17 @@ export function SquareCallback() {
           // Check if state is expired (older than 10 minutes)
           if (Date.now() - timestamp > 10 * 60 * 1000) {
             const errorMsg = 'State parameter expired - please try again';
-            console.error(errorMsg);
             setErrorMessage(errorMsg);
             return;
           }
 
           if (!state || state !== storedState) {
             const errorMsg = 'Invalid state parameter - possible CSRF attack';
-            console.error(errorMsg, { received: state, stored: storedState });
             setErrorMessage(errorMsg);
             return;
           }
         } catch (parseError) {
           const errorMsg = 'Invalid stored state format';
-          console.error(errorMsg, parseError);
           setErrorMessage(errorMsg);
           return;
         }
@@ -71,7 +65,6 @@ export function SquareCallback() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           const errorMsg = 'User not authenticated - please log in again';
-          console.error(errorMsg, userError);
           setErrorMessage(errorMsg);
           return;
         }
@@ -93,7 +86,6 @@ export function SquareCallback() {
 
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json();
-          console.error('Token exchange error:', errorData);
           const errorMsg = `Failed to exchange code for token: ${JSON.stringify(errorData)}`;
           setErrorMessage(errorMsg);
           return;
@@ -104,14 +96,12 @@ export function SquareCallback() {
         // Verify the merchant ID and tokens
         if (!tokenData.merchant_id) {
           const errorMsg = 'No merchant ID received from Square';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
 
         if (!tokenData.access_token || !tokenData.refresh_token) {
           const errorMsg = 'Incomplete token data received from Square';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -133,7 +123,6 @@ export function SquareCallback() {
           .eq('id', user.id);
 
         if (updateError) {
-          console.error('Database update error:', updateError);
           setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
           return;
         }
@@ -154,18 +143,15 @@ export function SquareCallback() {
           }
 
           const testData = await testResponse.json();
-          console.log('Successfully verified Square connection:', testData);
 
           // Redirect to success page
           navigate('/square/success');
         } catch (error) {
-          console.error('Error verifying Square connection:', error);
           setErrorMessage('Failed to verify Square connection. Please try again.');
           return;
         }
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error occurred';
-        console.error('Error handling Square callback:', error);
         setErrorMessage(errorMsg);
       }
     };
