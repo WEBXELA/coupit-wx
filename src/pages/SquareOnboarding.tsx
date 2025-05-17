@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, AlertCircle } from 'lucide-react';
 
 export function SquareOnboarding() {
   const [session, setSession] = useState(null);
@@ -13,16 +13,17 @@ export function SquareOnboarding() {
   const [searchParams] = useSearchParams();
   
   const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
-  const SQUARE_OAUTH_URL = 'https://connect.squareup.com/oauth2/authorize';
-
-  const generateState = () => {
-    return Math.random().toString(36).substring(2) + Date.now().toString(36);
-  };
 
   useEffect(() => {
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setError(`Square connection error: ${errorParam}`);
+    }
+
+    // Check for environment variables
+    if (!SQUARE_APP_ID) {
+      setError('Square configuration is missing. Please check your environment variables.');
+      return;
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -35,11 +36,14 @@ export function SquareOnboarding() {
     });
 
     return () => subscription.unsubscribe();
-  }, [searchParams]);
+  }, [searchParams, SQUARE_APP_ID]);
 
   const handleSignUp = async () => {
     try {
       setError('');
+      setLoading(true);
+
+      // Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -48,6 +52,7 @@ export function SquareOnboarding() {
       if (authError) throw authError;
 
       if (authData?.user) {
+        // Create profile
         const { error: profileError } = await supabase
           .from('profiles')
           .insert([
@@ -59,17 +64,24 @@ export function SquareOnboarding() {
 
         if (profileError) throw profileError;
 
+        // Wait a moment for the profile to be created
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
         handleSquareConnect();
       }
     } catch (error) {
       console.error('Error:', error.message);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleSignIn = async () => {
     try {
       setError('');
+      setLoading(true);
+
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -81,6 +93,8 @@ export function SquareOnboarding() {
     } catch (error) {
       console.error('Error:', error.message);
       setError(error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,7 +104,7 @@ export function SquareOnboarding() {
       return;
     }
 
-    const state = generateState();
+    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
     sessionStorage.setItem('square_oauth_state', state);
 
     const redirectUri = `${window.location.origin}/square/callback`;
@@ -102,7 +116,7 @@ export function SquareOnboarding() {
       redirect_uri: redirectUri,
     });
 
-    window.location.href = `${SQUARE_OAUTH_URL}?${params.toString()}`;
+    window.location.href = `https://connect.squareup.com/oauth2/authorize?${params.toString()}`;
   };
 
   if (loading) {
@@ -132,17 +146,19 @@ export function SquareOnboarding() {
 
           <div className="max-w-md mx-auto">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
-                {error}
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 flex items-center gap-2">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span>{error}</span>
               </div>
             )}
             
             {session ? (
               <button
                 onClick={handleSquareConnect}
+                disabled={loading}
                 className="primary-button w-full flex items-center justify-center gap-2"
               >
-                Connect Square Account <ArrowRight className="w-5 h-5" />
+                {loading ? 'Processing...' : 'Connect Square Account'} <ArrowRight className="w-5 h-5" />
               </button>
             ) : (
               <div className="bg-white p-8 rounded-2xl shadow-lg">
@@ -153,6 +169,7 @@ export function SquareOnboarding() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
+                    disabled={loading}
                   />
                   <input
                     type="password"
@@ -160,19 +177,22 @@ export function SquareOnboarding() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
+                    disabled={loading}
                   />
                   <button
                     onClick={handleSignUp}
+                    disabled={loading}
                     className="primary-button w-full flex items-center justify-center gap-2"
                   >
-                    Sign Up <ArrowRight className="w-5 h-5" />
+                    {loading ? 'Processing...' : 'Sign Up'} <ArrowRight className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleSignIn}
+                    disabled={loading}
                     className="w-full flex items-center justify-center gap-2 bg-[#2B2C30] text-white px-8 py-3 rounded-full font-semibold 
                              hover:bg-opacity-90 transition-all duration-300"
                   >
-                    Log In <ArrowRight className="w-5 h-5" />
+                    {loading ? 'Processing...' : 'Log In'} <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
               </div>
