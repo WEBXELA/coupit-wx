@@ -83,12 +83,11 @@ export function SquareCallback() {
           return;
         }
 
-        console.log('Current user:', user);
-
         // Exchange the authorization code for an access token
         const tokenResponse = await fetch('https://connect.squareup.com/oauth2/token', {
           method: 'POST',
           headers: {
+            'Square-Version': '2024-01-17',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -96,7 +95,6 @@ export function SquareCallback() {
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: 'https://coupit.ai/square/callback',
           }),
         });
 
@@ -158,6 +156,7 @@ export function SquareCallback() {
           const testResponse = await fetch('https://connect.squareup.com/v2/merchants/me', {
             method: 'GET',
             headers: {
+              'Square-Version': '2024-01-17',
               'Authorization': `Bearer ${tokenData.access_token}`,
               'Content-Type': 'application/json',
             },
