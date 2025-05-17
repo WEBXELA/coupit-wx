@@ -80,7 +80,8 @@ export function SquareCallback() {
             client_id: import.meta.env.VITE_SQUARE_APP_ID,
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
-            grant_type: 'authorization_code'
+            grant_type: 'authorization_code',
+            redirect_uri: `${window.location.origin}/square/callback`
           }),
         });
 
@@ -141,8 +142,6 @@ export function SquareCallback() {
           if (!testResponse.ok) {
             throw new Error('Failed to verify Square connection');
           }
-
-          const testData = await testResponse.json();
 
           // Redirect to success page
           navigate('/square/success');

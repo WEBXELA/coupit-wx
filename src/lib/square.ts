@@ -205,56 +205,6 @@ export async function trackSquareApiCall(apiCall: SquareApiCall) {
   }
 }
 
-export async function verifyConnectedSellers() {
-  try {
-    // Get all profiles with Square connections
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, email, square_merchant_id')
-      .not('square_merchant_id', 'is', null);
-
-    if (profilesError) {
-      throw profilesError;
-    }
-
-    const activeSellers = [];
-
-    for (const profile of profiles) {
-      // Check for production API calls in the last 30 days
-      const { data: apiCalls, error: apiCallsError } = await supabase
-        .from('square_api_calls')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .eq('environment', 'production')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-      if (apiCallsError) {
-        throw apiCallsError;
-      }
-
-      // Check if there are any non-ListLocations API calls
-      const hasActiveCalls = apiCalls.some(call => 
-        call.endpoint !== '/v2/locations' && 
-        call.status_code >= 200 && 
-        call.status_code < 300
-      );
-
-      if (hasActiveCalls) {
-        activeSellers.push({
-          id: profile.id,
-          email: profile.email,
-          merchant_id: profile.square_merchant_id,
-          last_active: apiCalls[0]?.created_at
-        });
-      }
-    }
-
-    return activeSellers;
-  } catch (error) {
-    throw error;
-  }
-}
-
 export async function checkSquareConnection() {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();

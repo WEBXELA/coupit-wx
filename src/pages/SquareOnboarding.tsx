@@ -114,7 +114,7 @@ export function SquareOnboarding() {
       localStorage.setItem('square_oauth_state', JSON.stringify(stateData));
 
       // Construct the OAuth URL
-      const redirectUri = 'https://coupit.ai/square/callback';
+      const redirectUri = `${window.location.origin}/square/callback`;
       const scopes = [
         'MERCHANT_PROFILE_READ',
         'ORDERS_READ',
