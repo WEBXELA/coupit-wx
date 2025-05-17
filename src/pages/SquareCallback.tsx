@@ -10,63 +10,35 @@ export function SquareCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
-        // Get the authorization code and state from the URL
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
         const error_description = searchParams.get('error_description');
 
-        console.log('Square Callback Params:', {
-          code,
-          state,
-          error,
-          error_description
-        });
-
-        // Check for errors
         if (error) {
-          const errorMsg = `Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`;
-          console.error(errorMsg);
-          setErrorMessage(errorMsg);
-          return;
+          throw new Error(`Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`);
         }
 
         if (!code) {
-          const errorMsg = 'No authorization code received from Square';
-          console.error(errorMsg);
-          setErrorMessage(errorMsg);
-          return;
+          throw new Error('No authorization code received from Square');
         }
 
-        // Validate state parameter
         const storedState = sessionStorage.getItem('square_oauth_state');
-        console.log('State validation:', { received: state, stored: storedState });
-        
         if (!state || state !== storedState) {
-          const errorMsg = 'Invalid state parameter - possible CSRF attack';
-          console.error(errorMsg);
-          setErrorMessage(errorMsg);
-          return;
+          throw new Error('Invalid state parameter - possible CSRF attack');
         }
 
-        // Clear the stored state
         sessionStorage.removeItem('square_oauth_state');
 
-        // Get current user
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
-          const errorMsg = 'User not authenticated - please log in again';
-          console.error(errorMsg, userError);
-          setErrorMessage(errorMsg);
-          return;
+          throw new Error('User not authenticated - please log in again');
         }
 
-        console.log('Current user:', user);
-
-        // Exchange the authorization code for an access token
         const tokenResponse = await fetch('https://connect.squareup.com/oauth2/token', {
           method: 'POST',
           headers: {
+            'Square-Version': '2024-01-18',
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
@@ -74,39 +46,20 @@ export function SquareCallback() {
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: 'https://coupit.ai/square/callback',
+            redirect_uri: `${window.location.origin}/square/callback`,
           }),
         });
 
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json();
-          console.error('Token exchange error:', errorData);
-          const errorMsg = `Failed to exchange code for token: ${JSON.stringify(errorData)}`;
-          setErrorMessage(errorMsg);
-          return;
+          throw new Error(`Failed to exchange code for token: ${JSON.stringify(errorData)}`);
         }
 
         const tokenData = await tokenResponse.json();
-        console.log('Token exchange successful:', { 
-          access_token: tokenData.access_token ? 'present' : 'missing',
-          refresh_token: tokenData.refresh_token ? 'present' : 'missing',
-          expires_in: tokenData.expires_in,
-          merchant_id: tokenData.merchant_id
-        });
 
-        // Verify the merchant ID
-        if (!tokenData.merchant_id) {
-          const errorMsg = 'No merchant ID received from Square';
-          console.error(errorMsg);
-          setErrorMessage(errorMsg);
-          return;
-        }
-
-        // Calculate expiration timestamp properly
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-        // Store the access token in Supabase
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
@@ -118,19 +71,13 @@ export function SquareCallback() {
           .eq('id', user.id);
 
         if (updateError) {
-          console.error('Database update error:', updateError);
-          setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
-          return;
+          throw new Error(`Failed to update tokens: ${updateError.message}`);
         }
 
-        console.log('Successfully stored Square credentials for user:', user.id);
-
-        // Redirect to success page
         navigate('/square/success');
       } catch (error) {
-        const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error('Error handling Square callback:', error);
-        setErrorMessage(errorMsg);
+        setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
       }
     };
 

@@ -1,23 +1,11 @@
 import { supabase } from './supabase';
 
-interface SquareApiCall {
-  endpoint: string;
-  method: string;
-  status_code: number;
-  environment: 'production' | 'sandbox';
-}
-
-interface SquareApiOptions {
-  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
-  body?: any;
-  environment?: 'production' | 'sandbox';
-}
-
 async function refreshSquareToken(userId: string, refreshToken: string) {
   try {
     const response = await fetch('https://connect.squareup.com/oauth2/token', {
       method: 'POST',
       headers: {
+        'Square-Version': '2024-01-18',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -35,16 +23,14 @@ async function refreshSquareToken(userId: string, refreshToken: string) {
 
     const tokenData = await response.json();
 
-    // Calculate new expiration timestamp
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-    // Update the tokens in the database
     const { error: updateError } = await supabase
       .from('profiles')
       .update({
         square_access_token: tokenData.access_token,
-        square_refresh_token: tokenData.refresh_token || refreshToken, // Keep old refresh token if new one not provided
+        square_refresh_token: tokenData.refresh_token || refreshToken,
         square_token_expires_at: expiresAt.toISOString(),
       })
       .eq('id', userId);
@@ -60,11 +46,10 @@ async function refreshSquareToken(userId: string, refreshToken: string) {
   }
 }
 
-export async function makeSquareApiCall(endpoint: string, options: SquareApiOptions = {}) {
+export async function makeSquareApiCall(endpoint: string, options: any = {}) {
   const { method = 'GET', body, environment = 'production' } = options;
   
   try {
-    // Get the current user's Square access token
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
       throw new Error('User not authenticated');
@@ -77,7 +62,6 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
       .single();
 
     if (profileError) {
-      console.error('Error fetching profile:', profileError);
       throw new Error('Failed to fetch Square credentials');
     }
 
@@ -85,40 +69,26 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
       throw new Error('Square access token not found');
     }
 
-    // Check if token is expired or about to expire (within 5 minutes)
     let accessToken = profile.square_access_token;
     if (profile.square_token_expires_at) {
       const expiresAt = new Date(profile.square_token_expires_at);
       const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
       
       if (expiresAt <= fiveMinutesFromNow && profile.square_refresh_token) {
-        try {
-          accessToken = await refreshSquareToken(user.id, profile.square_refresh_token);
-        } catch (refreshError) {
-          console.error('Failed to refresh token:', refreshError);
-          throw new Error('Square access token has expired and could not be refreshed. Please reconnect your Square account.');
-        }
+        accessToken = await refreshSquareToken(user.id, profile.square_refresh_token);
       }
     }
 
-    console.log('Making Square API call:', {
-      endpoint,
-      method,
-      environment,
-      hasToken: !!accessToken
-    });
-
-    // Make the API call to Square
     const response = await fetch(`https://connect.squareup.com${endpoint}`, {
       method,
       headers: {
+        'Square-Version': '2024-01-18',
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
       body: body ? JSON.stringify(body) : undefined,
     });
 
-    // Track the API call
     await trackSquareApiCall({
       endpoint,
       method,
@@ -129,13 +99,6 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
     const responseData = await response.json();
 
     if (!response.ok) {
-      console.error('Square API error:', {
-        endpoint,
-        method,
-        status: response.status,
-        statusText: response.statusText,
-        data: responseData
-      });
       throw new Error(`Square API error: ${response.status} ${response.statusText} - ${JSON.stringify(responseData)}`);
     }
 
@@ -146,7 +109,7 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
   }
 }
 
-export async function trackSquareApiCall(apiCall: SquareApiCall) {
+export async function trackSquareApiCall(apiCall: any) {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     
@@ -170,58 +133,6 @@ export async function trackSquareApiCall(apiCall: SquareApiCall) {
   }
 }
 
-export async function verifyConnectedSellers() {
-  try {
-    // Get all profiles with Square connections
-    const { data: profiles, error: profilesError } = await supabase
-      .from('profiles')
-      .select('id, email, square_merchant_id')
-      .not('square_merchant_id', 'is', null);
-
-    if (profilesError) {
-      throw profilesError;
-    }
-
-    const activeSellers = [];
-
-    for (const profile of profiles) {
-      // Check for production API calls in the last 30 days
-      const { data: apiCalls, error: apiCallsError } = await supabase
-        .from('square_api_calls')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .eq('environment', 'production')
-        .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
-
-      if (apiCallsError) {
-        console.error(`Error checking API calls for profile ${profile.id}:`, apiCallsError);
-        continue;
-      }
-
-      // Check if there are any non-ListLocations API calls
-      const hasActiveCalls = apiCalls.some(call => 
-        call.endpoint !== '/v2/locations' && 
-        call.status_code >= 200 && 
-        call.status_code < 300
-      );
-
-      if (hasActiveCalls) {
-        activeSellers.push({
-          id: profile.id,
-          email: profile.email,
-          merchant_id: profile.square_merchant_id,
-          last_active: apiCalls[0]?.created_at
-        });
-      }
-    }
-
-    return activeSellers;
-  } catch (error) {
-    console.error('Error verifying connected sellers:', error);
-    return [];
-  }
-}
-
 export async function checkSquareConnection() {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -231,7 +142,7 @@ export async function checkSquareConnection() {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('square_access_token, square_merchant_id, square_token_expires_at')
+      .select('square_access_token, square_merchant_id, square_token_expires_at, square_refresh_token')
       .eq('id', user.id)
       .single();
 
@@ -247,11 +158,12 @@ export async function checkSquareConnection() {
       throw new Error('No Square merchant ID found. Please connect your Square account first.');
     }
 
-    // Check if token is expired
     if (profile.square_token_expires_at) {
       const expiresAt = new Date(profile.square_token_expires_at);
-      if (expiresAt < new Date()) {
-        throw new Error('Square access token has expired. Please reconnect your Square account.');
+      const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+      
+      if (expiresAt <= fiveMinutesFromNow && profile.square_refresh_token) {
+        await refreshSquareToken(user.id, profile.square_refresh_token);
       }
     }
 
@@ -266,4 +178,4 @@ export async function checkSquareConnection() {
       error: error.message
     };
   }
-} 
+}
