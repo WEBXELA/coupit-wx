@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { User, LogOut, ChevronDown, CheckCircle } from 'lucide-react';
+import { User, LogOut, ChevronDown, CheckCircle, Home } from 'lucide-react';
 
 interface SquareAccount {
   id: string;
@@ -153,7 +153,14 @@ export function SquareSuccess() {
             </div>
           )}
 
-          <div className="text-center mt-8">
+          <div className="text-center mt-8 space-y-4">
+            <button
+              onClick={() => navigate('/')}
+              className="primary-button flex items-center justify-center gap-2 mx-auto"
+            >
+              <Home className="w-5 h-5" />
+              Go to Home
+            </button>
             <p className="text-sm text-gray-500">
               © 2025 Coupit. All rights reserved.
             </p>
