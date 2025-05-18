@@ -72,7 +72,7 @@ export function SquareCallback() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            client_id: import.meta.env.VITE_SQUARE_APP_ID,
+            client_id: config.appId,
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
             grant_type: 'authorization_code',
@@ -106,6 +106,25 @@ export function SquareCallback() {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
+        // First, check if the merchant is already connected to another account
+        const { data: existingMerchant, error: merchantError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('square_merchant_id', tokenData.merchant_id)
+          .neq('id', user.id)
+          .single();
+
+        if (merchantError && merchantError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          console.error('Error checking existing merchant:', merchantError);
+          setErrorMessage('Error checking merchant connection status');
+          return;
+        }
+
+        if (existingMerchant) {
+          setErrorMessage('This Square account is already connected to another Coupit account');
+          return;
+        }
+
         const { error: updateError } = await supabase
           .from('profiles')
           .update({
@@ -113,7 +132,8 @@ export function SquareCallback() {
             square_refresh_token: tokenData.refresh_token,
             square_token_expires_at: expiresAt.toISOString(),
             square_merchant_id: tokenData.merchant_id,
-            square_environment: environment
+            square_environment: environment,
+            square_connected_at: new Date().toISOString()
           })
           .eq('id', user.id);
 
@@ -125,7 +145,8 @@ export function SquareCallback() {
 
         console.log('Successfully stored Square credentials for user:', user.id);
 
-        navigate('/square/success');
+        // Redirect to the main dashboard instead of the test page
+        navigate('/dashboard');
       } catch (error) {
         const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error('Error handling Square callback:', error);
