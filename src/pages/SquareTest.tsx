@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User, LogOut } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User, LogOut, ChevronDown } from 'lucide-react';
 import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
 
 interface SquareAccount {
@@ -154,144 +154,185 @@ export function SquareTest() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f7f7f7] pt-32 pb-20 px-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-[#2B2C30] mb-4">
-            Square Connection Test
-          </h1>
-          <p className="text-xl text-gray-600">
-            Test your Square connection and verify your account
-          </p>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        {!connectionStatus.isConnected && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-600 px-4 py-3 rounded-lg mb-6">
-            <p className="font-medium">Square account not connected</p>
-            <p className="text-sm mt-1">{connectionStatus.error}</p>
-            <button
-              onClick={() => navigate('/square/onboarding')}
-              className="mt-3 flex items-center gap-2 text-yellow-700 hover:text-yellow-800"
+    <div className="min-h-screen bg-[#f7f7f7]">
+      {/* Profile Header */}
+      <div className="fixed top-0 right-0 p-4 z-50">
+        {connectedAccounts.length > 0 && (
+          <div className="relative group">
+            <button 
+              className="flex items-center gap-2 bg-white p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+              aria-label="Account menu"
             >
-              Connect Square Account <ArrowRight className="w-4 h-4" />
+              <div className="bg-[#2B2C30] p-2 rounded-full">
+                <User className="w-6 h-6 text-white" />
+              </div>
+              <ChevronDown className="w-5 h-5 text-[#2B2C30]" />
             </button>
+            
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
+              <div className="p-4 border-b border-gray-100">
+                <p className="font-medium text-[#2B2C30]">{connectedAccounts[0].email}</p>
+                <p className="text-sm text-gray-500">
+                  Merchant ID: {connectedAccounts[0].square_merchant_id || 'Not available'}
+                </p>
+                <p className="text-sm text-gray-500">
+                  Connected: {new Date(connectedAccounts[0].square_token_expires_at).toLocaleString()}
+                </p>
+              </div>
+              <div className="p-2">
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         )}
+      </div>
 
-        <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-[#2B2C30]">
-              Account Information
-            </h2>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={fetchConnectedAccounts}
-                className="flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
-              >
-                <RefreshCw className="w-5 h-5" />
-                Refresh
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700"
-              >
-                <LogOut className="w-5 h-5" />
-                Logout
-              </button>
-            </div>
+      <div className="pt-32 pb-20 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-[#2B2C30] mb-4">
+              Square Connection Test
+            </h1>
+            <p className="text-xl text-gray-600">
+              Test your Square connection and verify your account
+            </p>
           </div>
 
-          {loading ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">Loading account information...</p>
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-6">
+              {error}
             </div>
-          ) : (
-            <div className="space-y-4">
-              {connectedAccounts.map((account) => (
-                <div
-                  key={account.id}
-                  className="flex items-center justify-between p-6 bg-gray-50 rounded-lg"
+          )}
+
+          {!connectionStatus.isConnected && (
+            <div className="bg-yellow-50 border border-yellow-200 text-yellow-600 px-4 py-3 rounded-lg mb-6">
+              <p className="font-medium">Square account not connected</p>
+              <p className="text-sm mt-1">{connectionStatus.error}</p>
+              <button
+                onClick={() => navigate('/square/onboarding')}
+                className="mt-3 flex items-center gap-2 text-yellow-700 hover:text-yellow-800"
+              >
+                Connect Square Account <ArrowRight className="w-4 h-4" />
+              </button>
+            </div>
+          )}
+
+          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-[#2B2C30]">
+                Account Information
+              </h2>
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={fetchConnectedAccounts}
+                  className="flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="bg-[#2B2C30] p-3 rounded-full">
-                      <User className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-lg text-[#2B2C30]">{account.email}</p>
-                      <p className="text-sm text-gray-500">
-                        Merchant ID: {account.square_merchant_id || 'Not available'}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {account.square_token_expires_at ? (
-                          `Token expires: ${new Date(account.square_token_expires_at).toLocaleDateString()}`
-                        ) : (
-                          'No expiration date'
-                        )}
-                      </p>
+                  <RefreshCw className="w-5 h-5" />
+                  Refresh
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                >
+                  <LogOut className="w-5 h-5" />
+                  Logout
+                </button>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="text-center py-8">
+                <p className="text-gray-600">Loading account information...</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {connectedAccounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-6 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="bg-[#2B2C30] p-3 rounded-full">
+                        <User className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-lg text-[#2B2C30]">{account.email}</p>
+                        <p className="text-sm text-gray-500">
+                          Merchant ID: {account.square_merchant_id || 'Not available'}
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          {account.square_token_expires_at ? (
+                            `Token expires: ${new Date(account.square_token_expires_at).toLocaleDateString()}`
+                          ) : (
+                            'No expiration date'
+                          )}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {connectedAccounts.length === 0 && (
-                <div className="text-center py-8">
-                  <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-                  <p className="text-gray-600">No connected accounts found</p>
-                  <button
-                    onClick={() => navigate('/square/onboarding')}
-                    className="mt-4 flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
-                  >
-                    Connect Square Account <ArrowRight className="w-4 h-4" />
-                  </button>
+                {connectedAccounts.length === 0 && (
+                  <div className="text-center py-8">
+                    <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+                    <p className="text-gray-600">No connected accounts found</p>
+                    <button
+                      onClick={() => navigate('/square/onboarding')}
+                      className="mt-4 flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
+                    >
+                      Connect Square Account <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {connectionStatus.isConnected && (
+            <div className="bg-white rounded-2xl shadow-lg p-8">
+              <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">
+                Test Square Connection
+              </h2>
+              <p className="text-gray-600 mb-6">
+                Click the button below to test your Square connection. This will make a test API call to Square
+                and verify your account is properly connected.
+              </p>
+
+              <button
+                onClick={testSquareConnection}
+                disabled={testStatus.loading}
+                className="primary-button flex items-center justify-center gap-2"
+              >
+                {testStatus.loading ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Testing Connection...
+                  </>
+                ) : (
+                  'Test Connection'
+                )}
+              </button>
+
+              {testStatus.message && (
+                <div className={`mt-4 p-4 rounded-lg ${
+                  testStatus.success ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-red-50 border border-red-200 text-red-600'
+                }`}>
+                  <p className="font-medium">{testStatus.message}</p>
+                  {testStatus.details && (
+                    <p className="text-sm mt-1">{testStatus.details}</p>
+                  )}
                 </div>
               )}
             </div>
           )}
         </div>
-
-        {connectionStatus.isConnected && (
-          <div className="bg-white rounded-2xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">
-              Test Square Connection
-            </h2>
-            <p className="text-gray-600 mb-6">
-              Click the button below to test your Square connection. This will make a test API call to Square
-              and verify your account is properly connected.
-            </p>
-
-            <button
-              onClick={testSquareConnection}
-              disabled={testStatus.loading}
-              className="primary-button flex items-center justify-center gap-2"
-            >
-              {testStatus.loading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  Testing Connection...
-                </>
-              ) : (
-                'Test Connection'
-              )}
-            </button>
-
-            {testStatus.message && (
-              <div className={`mt-4 p-4 rounded-lg ${
-                testStatus.success ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-red-50 border border-red-200 text-red-600'
-              }`}>
-                <p className="font-medium">{testStatus.message}</p>
-                {testStatus.details && (
-                  <p className="text-sm mt-1">{testStatus.details}</p>
-                )}
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
