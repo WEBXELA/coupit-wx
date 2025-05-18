@@ -51,7 +51,6 @@ export function SquareCallback() {
             client_secret: import.meta.env.VITE_SQUARE_APP_SECRET,
             code,
             grant_type: 'authorization_code',
-            redirect_uri: `${window.location.origin}/square/callback`,
           }),
         });
 
@@ -62,7 +61,6 @@ export function SquareCallback() {
         }
 
         const tokenData = await tokenResponse.json();
-        console.log('Token exchange successful:', tokenData);
 
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
