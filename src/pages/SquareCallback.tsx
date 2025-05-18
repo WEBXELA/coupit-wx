@@ -83,10 +83,10 @@ export function SquareCallback() {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-        // Create a new profile for the Square connection using user.id as both id and user_id
-        const { error: insertError } = await supabase
+        // Upsert the profile data
+        const { error: upsertError } = await supabase
           .from('profiles')
-          .insert([{
+          .upsert({
             id: user.id,
             user_id: user.id,
             email: user.email,
@@ -95,12 +95,15 @@ export function SquareCallback() {
             square_token_expires_at: expiresAt.toISOString(),
             square_merchant_id: tokenData.merchant_id,
             square_environment: environment,
-            square_connected_at: new Date().toISOString()
-          }]);
+            square_connected_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'id'
+          });
 
-        if (insertError) {
-          console.error('Database insert error:', insertError);
-          setErrorMessage(`Failed to save Square credentials: ${insertError.message}`);
+        if (upsertError) {
+          console.error('Database upsert error:', upsertError);
+          setErrorMessage(`Failed to save Square credentials: ${upsertError.message}`);
           return;
         }
 
