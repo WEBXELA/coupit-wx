@@ -13,16 +13,13 @@ export function SquareOnboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
-  // Get the application ID from environment variables
   const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
   
-  // Generate a random state value for OAuth security
   const generateState = () => {
     return Math.random().toString(36).substring(2) + Date.now().toString(36);
   };
 
   useEffect(() => {
-    // Check for error in URL parameters
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setError(`Square connection error: ${errorParam}`);
@@ -51,19 +48,19 @@ export function SquareOnboarding() {
       if (authError) throw authError;
 
       if (authData?.user) {
-        // Store additional user data
+        // Create initial profile
         const { error: profileError } = await supabase
           .from('profiles')
           .insert([
             {
               id: authData.user.id,
+              user_id: authData.user.id,
               email: email,
             }
           ]);
 
         if (profileError) throw profileError;
 
-        // After successful signup, redirect to Square OAuth
         handleSquareConnect();
       }
     } catch (error) {
@@ -81,8 +78,6 @@ export function SquareOnboarding() {
       });
 
       if (error) throw error;
-
-      // After successful signin, redirect to Square OAuth
       handleSquareConnect();
     } catch (error) {
       console.error('Error:', error.message);
@@ -96,29 +91,19 @@ export function SquareOnboarding() {
       return;
     }
 
-    // Generate and store state
     const state = generateState();
     sessionStorage.setItem('square_oauth_state', state);
     sessionStorage.setItem('square_environment', environment);
 
-    // Build the OAuth URL with required parameters
     const config = SQUARE_CONFIG[environment];
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
       state: state,
-      session: 'false', // Don't force login if user is already logged in
+      session: 'false',
       redirect_uri: config.redirectUri,
     });
 
-    console.log('Initiating Square OAuth with:', {
-      environment,
-      client_id: SQUARE_APP_ID,
-      redirect_uri: config.redirectUri,
-      state: state
-    });
-
-    // Redirect to Square's OAuth page
     window.location.href = `${config.oauthUrl}?${params.toString()}`;
   };
 

@@ -35,9 +35,9 @@ export function SquareSuccess() {
         if (data) {
           setMerchantInfo({
             merchant_id: data.square_merchant_id,
-            business_name: 'Your Business', // You can fetch this from Square API if needed
-            email: 'your@email.com', // You can fetch this from Square API if needed
-            country: 'United States', // You can fetch this from Square API if needed
+            business_name: 'Your Business',
+            email: 'your@email.com',
+            country: 'United States',
             created_at: data.square_connected_at
           });
         }
@@ -65,8 +65,8 @@ export function SquareSuccess() {
           
           {merchantInfo && (
             <div className="bg-gray-50 p-4 rounded-lg text-left mb-6">
-              <h3 className="font-semibold text-gray-700 mb-2">Account Details:</h3>
-              <div className="space-y-2 text-sm">
+              <h3 className="font-semibold text-[#2B2C30] mb-2">Account Details:</h3>
+              <div className="space-y-2 text-sm text-[#2B2C30]">
                 <p><span className="font-medium">Merchant ID:</span> {merchantInfo.merchant_id}</p>
                 <p><span className="font-medium">Connected At:</span> {new Date(merchantInfo.created_at).toLocaleString()}</p>
               </div>
