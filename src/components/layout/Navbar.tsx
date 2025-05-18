@@ -1,10 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, X, Target } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../../lib/supabase';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setIsAuthenticated(!!user);
+  };
 
   const handleNavigation = (path: string) => {
     setIsMenuOpen(false);
@@ -24,12 +35,14 @@ export function Navbar() {
           <div className="hidden md:flex items-center gap-4">
             <Link to="/contact" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</Link>
             <Link to="/pricing" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</Link>
-            <Link 
-              to="/square/onboarding" 
-              className="primary-button"
-            >
-              Get Started
-            </Link>
+            {!isAuthenticated && (
+              <Link 
+                to="/square/onboarding" 
+                className="primary-button"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -47,7 +60,9 @@ export function Navbar() {
             <div className="flex flex-col gap-4">
               <button onClick={() => handleNavigation('/contact')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</button>
               <button onClick={() => handleNavigation('/pricing')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</button>
-              <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
+              {!isAuthenticated && (
+                <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
+              )}
             </div>
           </div>
         )}
