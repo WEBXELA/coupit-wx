@@ -21,14 +21,12 @@ export function SquareCallback() {
 
         if (error) {
           const errorMsg = `Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`;
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
 
         if (!code) {
           const errorMsg = 'No authorization code received from Square';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -38,7 +36,6 @@ export function SquareCallback() {
         
         if (!state || state !== storedState) {
           const errorMsg = 'Invalid state parameter - possible CSRF attack';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -49,7 +46,6 @@ export function SquareCallback() {
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         if (userError || !user) {
           const errorMsg = 'User not authenticated - please log in again';
-          console.error(errorMsg, userError);
           setErrorMessage(errorMsg);
           return;
         }
@@ -71,7 +67,6 @@ export function SquareCallback() {
 
         if (!tokenResponse.ok) {
           const errorData = await tokenResponse.json();
-          console.error('Token exchange error:', errorData);
           const errorMsg = `Failed to exchange code for token: ${JSON.stringify(errorData)}`;
           setErrorMessage(errorMsg);
           return;
@@ -81,7 +76,6 @@ export function SquareCallback() {
 
         if (!tokenData.merchant_id) {
           const errorMsg = 'No merchant ID received from Square';
-          console.error(errorMsg);
           setErrorMessage(errorMsg);
           return;
         }
@@ -89,11 +83,12 @@ export function SquareCallback() {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-        // Create a new profile for each Square connection
+        // Create a new profile for the Square connection
         const { error: insertError } = await supabase
           .from('profiles')
           .insert([{
             id: crypto.randomUUID(),
+            user_id: user.id,
             email: user.email,
             square_access_token: tokenData.access_token,
             square_refresh_token: tokenData.refresh_token,
