@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User } from 'lucide-react';
 import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
 
 interface SquareAccount {
@@ -177,7 +177,7 @@ export function SquareTest() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#2B2C30]">
-              Connected Accounts ({connectedAccounts.length})
+              Connected Account
             </h2>
             <button
               onClick={fetchConnectedAccounts}
@@ -190,7 +190,7 @@ export function SquareTest() {
 
           {loading ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">Loading connected accounts...</p>
+              <p className="text-gray-600">Loading account information...</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -200,7 +200,9 @@ export function SquareTest() {
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-green-500" />
+                    <div className="bg-[#2B2C30] p-2 rounded-full">
+                      <User className="w-6 h-6 text-white" />
+                    </div>
                     <div>
                       <p className="font-medium text-[#2B2C30]">{account.email}</p>
                       <p className="text-sm text-gray-500">
@@ -261,11 +263,11 @@ export function SquareTest() {
 
             {testStatus.message && (
               <div className={`mt-4 p-4 rounded-lg ${
-                testStatus.success ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
+                testStatus.success ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-red-50 border border-red-200 text-red-600'
               }`}>
                 <p className="font-medium">{testStatus.message}</p>
                 {testStatus.details && (
-                  <p className="text-sm mt-2">{testStatus.details}</p>
+                  <p className="text-sm mt-1">{testStatus.details}</p>
                 )}
               </div>
             )}
