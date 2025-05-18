@@ -49,6 +49,8 @@ export interface SquareApiOptions {
 
 async function refreshSquareToken(userId: string, refreshToken: string, environment: SquareEnvironment = 'production') {
   try {
+    console.log('Attempting to refresh Square token...');
+    
     const response = await fetch(SQUARE_CONFIG[environment].tokenUrl, {
       method: 'POST',
       headers: {
@@ -64,11 +66,17 @@ async function refreshSquareToken(userId: string, refreshToken: string, environm
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Token refresh error:', errorData);
+      console.error('Token refresh error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
       throw new Error(`Failed to refresh token: ${JSON.stringify(errorData)}`);
     }
 
     const tokenData = await response.json();
+    console.log('Token refresh successful');
+    
     const expiresAt = new Date();
     expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
@@ -77,7 +85,7 @@ async function refreshSquareToken(userId: string, refreshToken: string, environm
       .from('profiles')
       .update({
         square_access_token: tokenData.access_token,
-        square_refresh_token: tokenData.refresh_token || refreshToken, // Keep old refresh token if new one not provided
+        square_refresh_token: tokenData.refresh_token || refreshToken,
         square_token_expires_at: expiresAt.toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -106,33 +114,44 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('square_access_token, square_refresh_token, square_token_expires_at')
+      .select('square_access_token, square_refresh_token, square_token_expires_at, square_merchant_id')
       .eq('id', user.id)
       .single();
 
     if (profileError || !profile) {
+      console.error('Profile fetch error:', profileError);
       throw new Error('Failed to fetch user profile');
     }
 
     if (!profile.square_access_token) {
+      console.error('No Square access token found for user:', user.id);
       throw new Error('Square account not connected');
     }
 
     let accessToken = profile.square_access_token;
     const tokenExpiresAt = new Date(profile.square_token_expires_at);
 
-    // Refresh token if it's expired or about to expire (within 5 minutes)
-    if (tokenExpiresAt.getTime() - Date.now() < 5 * 60 * 1000) {
+    // Refresh token if it's expired or about to expire (within 10 minutes)
+    if (tokenExpiresAt.getTime() - Date.now() < 10 * 60 * 1000) {
+      console.log('Token is expiring soon, attempting refresh...');
       if (!profile.square_refresh_token) {
+        console.error('No refresh token available for user:', user.id);
         throw new Error('Square access token has expired. Please reconnect your Square account.');
       }
-      accessToken = await refreshSquareToken(user.id, profile.square_refresh_token, environment);
+      try {
+        accessToken = await refreshSquareToken(user.id, profile.square_refresh_token, environment);
+        console.log('Token refreshed successfully');
+      } catch (refreshError) {
+        console.error('Token refresh failed:', refreshError);
+        throw new Error('Failed to refresh Square token. Please reconnect your Square account.');
+      }
     }
 
     const baseUrl = environment === 'production' 
       ? 'https://connect.squareup.com'
       : 'https://connect.squareupsandbox.com';
 
+    console.log('Making Square API call to:', endpoint);
     const response = await fetch(`${baseUrl}${endpoint}`, {
       method,
       headers: {
@@ -145,6 +164,11 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Square API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
       throw new Error(`Square API error: ${JSON.stringify(errorData)}`);
     }
 
