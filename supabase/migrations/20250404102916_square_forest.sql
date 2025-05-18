@@ -10,6 +10,7 @@
       - `square_refresh_token` (text)
       - `square_token_expires_at` (timestamp)
       - `square_merchant_id` (text)
+      - `square_environment` (text)
       - `created_at` (timestamp)
       - `updated_at` (timestamp)
 
@@ -26,6 +27,7 @@ CREATE TABLE IF NOT EXISTS profiles (
   square_refresh_token text,
   square_token_expires_at timestamptz,
   square_merchant_id text,
+  square_environment text DEFAULT 'production',
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );

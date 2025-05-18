@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { ArrowRight, AlertCircle } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import { SQUARE_CONFIG, SquareEnvironment } from '../lib/square';
 
 export function SquareOnboarding() {
   const [session, setSession] = useState(null);
@@ -12,18 +13,19 @@ export function SquareOnboarding() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
+  // Get the application ID from environment variables
   const SQUARE_APP_ID = import.meta.env.VITE_SQUARE_APP_ID;
+  
+  // Generate a random state value for OAuth security
+  const generateState = () => {
+    return Math.random().toString(36).substring(2) + Date.now().toString(36);
+  };
 
   useEffect(() => {
+    // Check for error in URL parameters
     const errorParam = searchParams.get('error');
     if (errorParam) {
       setError(`Square connection error: ${errorParam}`);
-    }
-
-    // Check for environment variables
-    if (!SQUARE_APP_ID) {
-      setError('Square configuration is missing. Please check your environment variables.');
-      return;
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -36,14 +38,11 @@ export function SquareOnboarding() {
     });
 
     return () => subscription.unsubscribe();
-  }, [searchParams, SQUARE_APP_ID]);
+  }, [searchParams]);
 
   const handleSignUp = async () => {
     try {
       setError('');
-      setLoading(true);
-
-      // Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -52,7 +51,7 @@ export function SquareOnboarding() {
       if (authError) throw authError;
 
       if (authData?.user) {
-        // Create profile
+        // Store additional user data
         const { error: profileError } = await supabase
           .from('profiles')
           .insert([
@@ -64,24 +63,18 @@ export function SquareOnboarding() {
 
         if (profileError) throw profileError;
 
-        // Wait a moment for the profile to be created
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
+        // After successful signup, redirect to Square OAuth
         handleSquareConnect();
       }
     } catch (error) {
       console.error('Error:', error.message);
       setError(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSignIn = async () => {
     try {
       setError('');
-      setLoading(true);
-
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -89,34 +82,44 @@ export function SquareOnboarding() {
 
       if (error) throw error;
 
+      // After successful signin, redirect to Square OAuth
       handleSquareConnect();
     } catch (error) {
       console.error('Error:', error.message);
       setError(error.message);
-    } finally {
-      setLoading(false);
     }
   };
 
-  const handleSquareConnect = () => {
+  const handleSquareConnect = (environment: SquareEnvironment = 'production') => {
     if (!SQUARE_APP_ID) {
       setError('Square configuration is missing. Please contact support.');
       return;
     }
 
-    const state = Math.random().toString(36).substring(2) + Date.now().toString(36);
+    // Generate and store state
+    const state = generateState();
     sessionStorage.setItem('square_oauth_state', state);
+    sessionStorage.setItem('square_environment', environment);
 
-    const redirectUri = `${window.location.origin}/square/callback`;
+    // Build the OAuth URL with required parameters
+    const config = SQUARE_CONFIG[environment];
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
       scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
       state: state,
-      session: 'false',
-      redirect_uri: redirectUri,
+      session: 'false', // Don't force login if user is already logged in
+      redirect_uri: config.redirectUri,
     });
 
-    window.location.href = `https://connect.squareup.com/oauth2/authorize?${params.toString()}`;
+    console.log('Initiating Square OAuth with:', {
+      environment,
+      client_id: SQUARE_APP_ID,
+      redirect_uri: config.redirectUri,
+      state: state
+    });
+
+    // Redirect to Square's OAuth page
+    window.location.href = `${config.oauthUrl}?${params.toString()}`;
   };
 
   if (loading) {
@@ -146,22 +149,13 @@ export function SquareOnboarding() {
 
           <div className="max-w-md mx-auto">
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4 flex items-center gap-2">
-                <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                <span>{error}</span>
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
+                {error}
               </div>
             )}
-            
-            {session ? (
-              <button
-                onClick={handleSquareConnect}
-                disabled={loading}
-                className="primary-button w-full flex items-center justify-center gap-2"
-              >
-                {loading ? 'Processing...' : 'Connect Square Account'} <ArrowRight className="w-5 h-5" />
-              </button>
-            ) : (
-              <div className="bg-white p-8 rounded-2xl shadow-lg">
+
+            {!session ? (
+              <div className="bg-white rounded-2xl shadow-lg p-8">
                 <div className="space-y-4">
                   <input
                     type="email"
@@ -169,7 +163,6 @@ export function SquareOnboarding() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
-                    disabled={loading}
                   />
                   <input
                     type="password"
@@ -177,24 +170,36 @@ export function SquareOnboarding() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full p-3 rounded-lg border border-gray-300 text-[#2B2C30]"
-                    disabled={loading}
                   />
                   <button
                     onClick={handleSignUp}
-                    disabled={loading}
                     className="primary-button w-full flex items-center justify-center gap-2"
                   >
-                    {loading ? 'Processing...' : 'Sign Up'} <ArrowRight className="w-5 h-5" />
+                    Sign Up <ArrowRight className="w-5 h-5" />
                   </button>
                   <button
                     onClick={handleSignIn}
-                    disabled={loading}
                     className="w-full flex items-center justify-center gap-2 bg-[#2B2C30] text-white px-8 py-3 rounded-full font-semibold 
                              hover:bg-opacity-90 transition-all duration-300"
                   >
-                    {loading ? 'Processing...' : 'Log In'} <ArrowRight className="w-5 h-5" />
+                    Log In <ArrowRight className="w-5 h-5" />
                   </button>
                 </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <button
+                  onClick={() => handleSquareConnect('production')}
+                  className="w-full bg-[#2B2C30] text-white px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-300"
+                >
+                  Connect Production Square Account
+                </button>
+                <button
+                  onClick={() => handleSquareConnect('sandbox')}
+                  className="w-full bg-gray-200 text-[#2B2C30] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-300"
+                >
+                  Connect Sandbox Square Account
+                </button>
               </div>
             )}
           </div>
