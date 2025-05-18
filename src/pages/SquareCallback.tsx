@@ -19,13 +19,6 @@ export function SquareCallback() {
         const error = searchParams.get('error');
         const error_description = searchParams.get('error_description');
 
-        console.log('Square Callback Params:', {
-          code,
-          state,
-          error,
-          error_description
-        });
-
         if (error) {
           const errorMsg = `Square OAuth error: ${error}${error_description ? ` - ${error_description}` : ''}`;
           console.error(errorMsg);
@@ -42,8 +35,6 @@ export function SquareCallback() {
 
         const storedState = sessionStorage.getItem('square_oauth_state');
         const environment = (sessionStorage.getItem('square_environment') || 'production') as SquareEnvironment;
-        
-        console.log('State validation:', { received: state, stored: storedState, environment });
         
         if (!state || state !== storedState) {
           const errorMsg = 'Invalid state parameter - possible CSRF attack';
@@ -62,8 +53,6 @@ export function SquareCallback() {
           setErrorMessage(errorMsg);
           return;
         }
-
-        console.log('Current user:', user);
 
         const config = SQUARE_CONFIG[environment];
         const tokenResponse = await fetch(config.tokenUrl, {
@@ -89,12 +78,6 @@ export function SquareCallback() {
         }
 
         const tokenData = await tokenResponse.json();
-        console.log('Token exchange successful:', { 
-          access_token: tokenData.access_token ? 'present' : 'missing',
-          refresh_token: tokenData.refresh_token ? 'present' : 'missing',
-          merchant_id: tokenData.merchant_id,
-          environment
-        });
 
         if (!tokenData.merchant_id) {
           const errorMsg = 'No merchant ID received from Square';
@@ -106,47 +89,29 @@ export function SquareCallback() {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-        // First, check if the merchant is already connected to another account
-        const { data: existingMerchant, error: merchantError } = await supabase
+        // Create a new profile for each Square connection
+        const { error: insertError } = await supabase
           .from('profiles')
-          .select('id')
-          .eq('square_merchant_id', tokenData.merchant_id)
-          .neq('id', user.id)
-          .single();
-
-        if (merchantError && merchantError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-          console.error('Error checking existing merchant:', merchantError);
-          setErrorMessage('Error checking merchant connection status');
-          return;
-        }
-
-        if (existingMerchant) {
-          setErrorMessage('This Square account is already connected to another Coupit account');
-          return;
-        }
-
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update({
+          .insert([{
+            id: crypto.randomUUID(),
+            email: user.email,
             square_access_token: tokenData.access_token,
             square_refresh_token: tokenData.refresh_token,
             square_token_expires_at: expiresAt.toISOString(),
             square_merchant_id: tokenData.merchant_id,
             square_environment: environment,
             square_connected_at: new Date().toISOString()
-          })
-          .eq('id', user.id);
+          }]);
 
-        if (updateError) {
-          console.error('Database update error:', updateError);
-          setErrorMessage(`Failed to save Square credentials: ${updateError.message}`);
+        if (insertError) {
+          console.error('Database insert error:', insertError);
+          setErrorMessage(`Failed to save Square credentials: ${insertError.message}`);
           return;
         }
 
-        console.log('Successfully stored Square credentials for user:', user.id);
-
-        // Redirect to the main dashboard instead of the test page
-        navigate('/dashboard');
+        // Store the merchant ID in session storage for the success page
+        sessionStorage.setItem('connected_merchant_id', tokenData.merchant_id);
+        navigate('/square/success');
       } catch (error) {
         const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
         console.error('Error handling Square callback:', error);
