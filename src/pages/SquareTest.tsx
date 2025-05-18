@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User } from 'lucide-react';
+import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User, LogOut } from 'lucide-react';
 import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
 
 interface SquareAccount {
@@ -143,6 +143,16 @@ export function SquareTest() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      navigate('/');
+    } catch (error: any) {
+      console.error('Error logging out:', error);
+      setError(error.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f7f7f7] pt-32 pb-20 px-6">
       <div className="max-w-6xl mx-auto">
@@ -177,15 +187,24 @@ export function SquareTest() {
         <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-[#2B2C30]">
-              Connected Account
+              Account Information
             </h2>
-            <button
-              onClick={fetchConnectedAccounts}
-              className="flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
-            >
-              <RefreshCw className="w-5 h-5" />
-              Refresh
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={fetchConnectedAccounts}
+                className="flex items-center gap-2 text-[#2B2C30] hover:text-opacity-80"
+              >
+                <RefreshCw className="w-5 h-5" />
+                Refresh
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700"
+              >
+                <LogOut className="w-5 h-5" />
+                Logout
+              </button>
+            </div>
           </div>
 
           {loading ? (
@@ -197,25 +216,25 @@ export function SquareTest() {
               {connectedAccounts.map((account) => (
                 <div
                   key={account.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
+                  className="flex items-center justify-between p-6 bg-gray-50 rounded-lg"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="bg-[#2B2C30] p-2 rounded-full">
-                      <User className="w-6 h-6 text-white" />
+                  <div className="flex items-center gap-4">
+                    <div className="bg-[#2B2C30] p-3 rounded-full">
+                      <User className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <p className="font-medium text-[#2B2C30]">{account.email}</p>
+                      <p className="font-medium text-lg text-[#2B2C30]">{account.email}</p>
                       <p className="text-sm text-gray-500">
                         Merchant ID: {account.square_merchant_id || 'Not available'}
                       </p>
+                      <p className="text-sm text-gray-500">
+                        {account.square_token_expires_at ? (
+                          `Token expires: ${new Date(account.square_token_expires_at).toLocaleDateString()}`
+                        ) : (
+                          'No expiration date'
+                        )}
+                      </p>
                     </div>
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {account.square_token_expires_at ? (
-                      `Expires: ${new Date(account.square_token_expires_at).toLocaleDateString()}`
-                    ) : (
-                      'No expiration date'
-                    )}
                   </div>
                 </div>
               ))}

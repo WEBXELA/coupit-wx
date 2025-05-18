@@ -177,16 +177,8 @@ export function SquareOnboarding() {
                   onClick={() => handleSquareConnect('production')}
                   className="w-full bg-[#2B2C30] text-white px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-300"
                 >
-                  Connect Production Square Account
+                  Connect Square Account
                 </button>
-                {/* Sandbox login temporarily disabled
-                <button
-                  onClick={() => handleSquareConnect('sandbox')}
-                  className="w-full bg-gray-200 text-[#2B2C30] px-8 py-4 rounded-lg font-semibold hover:bg-opacity-90 transition-all duration-300"
-                >
-                  Connect Sandbox Square Account
-                </button>
-                */}
               </div>
             )}
           </div>
