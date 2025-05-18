@@ -83,11 +83,11 @@ export function SquareCallback() {
         const expiresAt = new Date();
         expiresAt.setSeconds(expiresAt.getSeconds() + (tokenData.expires_in || 0));
 
-        // Create a new profile for the Square connection
+        // Create a new profile for the Square connection using user.id as both id and user_id
         const { error: insertError } = await supabase
           .from('profiles')
           .insert([{
-            id: crypto.randomUUID(),
+            id: user.id,
             user_id: user.id,
             email: user.email,
             square_access_token: tokenData.access_token,
