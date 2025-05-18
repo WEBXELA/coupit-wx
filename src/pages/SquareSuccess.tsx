@@ -105,8 +105,8 @@ export function SquareSuccess() {
         )}
       </div>
 
-      <div className="pt-32 pb-20 px-6">
-        <div className="max-w-6xl mx-auto">
+      <div className="min-h-screen flex items-center justify-center px-6">
+        <div className="max-w-2xl w-full">
           <div className="text-center mb-12">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-6">
               <CheckCircle className="w-8 h-8 text-green-600" />
@@ -130,7 +130,7 @@ export function SquareSuccess() {
               <p className="text-gray-600">Loading account information...</p>
             </div>
           ) : connectedAccount && (
-            <div className="bg-white rounded-2xl shadow-lg p-8 max-w-2xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-lg p-8">
               <h2 className="text-2xl font-bold text-[#2B2C30] mb-6">
                 Account Details
               </h2>
@@ -152,6 +152,12 @@ export function SquareSuccess() {
               </div>
             </div>
           )}
+
+          <div className="text-center mt-8">
+            <p className="text-sm text-gray-500">
+              © 2025 Coupit. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </div>
