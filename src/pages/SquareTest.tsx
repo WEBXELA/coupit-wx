@@ -213,7 +213,14 @@ export function SquareTest() {
                   Connected: {new Date(connectedAccounts[0].square_token_expires_at).toLocaleString()}
                 </p>
               </div>
-              <div className="p-2">
+              <div className="p-2 space-y-1">
+                <button
+                  onClick={handleDisconnectSquare}
+                  className="w-full flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
+                >
+                  <Unlink className="w-5 h-5" />
+                  Disconnect Square
+                </button>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"

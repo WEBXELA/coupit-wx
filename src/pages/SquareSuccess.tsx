@@ -35,11 +35,11 @@ export function SquareSuccess() {
         throw new Error('Not authenticated. Please log in first.');
       }
 
-      const { data, error } = await supabase
-        .from('profiles')
+        const { data, error } = await supabase
+          .from('profiles')
         .select('id, email, square_merchant_id, square_token_expires_at, square_access_token')
         .eq('id', user.id)
-        .single();
+          .single();
 
       if (error) {
         throw error;

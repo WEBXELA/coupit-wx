@@ -60,12 +60,12 @@ export function Navbar() {
             <Link to="/contact" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</Link>
             <Link to="/pricing" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</Link>
             {!isAuthenticated ? (
-              <Link 
-                to="/square/onboarding" 
-                className="primary-button"
-              >
-                Get Started
-              </Link>
+            <Link 
+              to="/square/onboarding" 
+              className="primary-button"
+            >
+              Get Started
+            </Link>
             ) : connectedAccount && (
               <div className="relative group">
                 <button 
@@ -119,7 +119,7 @@ export function Navbar() {
               <button onClick={() => handleNavigation('/contact')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</button>
               <button onClick={() => handleNavigation('/pricing')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</button>
               {!isAuthenticated ? (
-                <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
+              <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
               ) : connectedAccount && (
                 <div className="bg-white p-4 rounded-lg shadow-lg">
                   <p className="font-medium text-[#2B2C30] mb-2">{connectedAccount.email}</p>
