@@ -41,14 +41,42 @@ export function Navbar() {
         throw new Error('Not authenticated');
       }
 
-      await revokeSquareToken(user.id);
+      // First try to revoke the token
+      try {
+        await revokeSquareToken(user.id);
+      } catch (revokeError: any) {
+        console.error('Error revoking token:', revokeError);
+        // If token revocation fails, we'll still try to clear the local data
+      }
+
+      // Clear the local data regardless of token revocation success
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          square_access_token: null,
+          square_refresh_token: null,
+          square_token_expires_at: null,
+          square_merchant_id: null,
+          square_environment: null,
+          square_connected_at: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (updateError) {
+        throw new Error(`Failed to update profile: ${updateError.message}`);
+      }
+
       setConnectedAccount(null);
+      
+      // Show success message
+      alert('Square account disconnected successfully');
       
       // Refresh the page to update the UI
       window.location.reload();
     } catch (error: any) {
       console.error('Error disconnecting Square account:', error);
-      alert('Failed to disconnect Square account: ' + error.message);
+      alert(`Failed to disconnect Square account: ${error.message}\n\nPlease try again or contact support if the issue persists.`);
     } finally {
       setLoading(false);
     }
