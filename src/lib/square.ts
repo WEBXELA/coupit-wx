@@ -181,37 +181,59 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
 
 export async function revokeSquareToken(userId: string, environment: SquareEnvironment = 'production') {
   try {
+    console.log('Starting Square token revocation process...');
+    
     // Get the current access token
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('square_access_token')
+      .select('square_access_token, square_environment')
       .eq('id', userId)
       .single();
 
-    if (profileError || !profile?.square_access_token) {
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+      throw new Error(`Failed to fetch profile: ${profileError.message}`);
+    }
+
+    if (!profile?.square_access_token) {
+      console.error('No Square access token found for user:', userId);
       throw new Error('No Square access token found');
     }
 
+    // Use the environment from the profile if available, otherwise use the provided environment
+    const tokenEnvironment: SquareEnvironment = (profile.square_environment as SquareEnvironment) || environment;
+    console.log('Using Square environment:', tokenEnvironment);
+
     // Revoke the token with Square
-    const baseUrl = environment === 'production' 
+    const baseUrl = tokenEnvironment === 'production' 
       ? 'https://connect.squareup.com'
       : 'https://connect.squareupsandbox.com';
+
+    console.log('Making revocation request to:', `${baseUrl}/oauth2/revoke`);
 
     const response = await fetch(`${baseUrl}/oauth2/revoke`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Square-Version': '2024-02-15'
       },
       body: JSON.stringify({
-        client_id: SQUARE_CONFIG[environment].appId,
+        client_id: SQUARE_CONFIG[tokenEnvironment].appId,
         access_token: profile.square_access_token,
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Failed to revoke token: ${JSON.stringify(errorData)}`);
+      const errorData = await response.json().catch(() => null);
+      console.error('Square revocation error:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      });
+      throw new Error(`Square API error: ${response.status} ${response.statusText}${errorData ? ` - ${JSON.stringify(errorData)}` : ''}`);
     }
+
+    console.log('Successfully revoked token with Square');
 
     // Clear Square-related data from the profile
     const { error: updateError } = await supabase
@@ -228,12 +250,14 @@ export async function revokeSquareToken(userId: string, environment: SquareEnvir
       .eq('id', userId);
 
     if (updateError) {
-      throw updateError;
+      console.error('Error updating profile after revocation:', updateError);
+      throw new Error(`Failed to update profile: ${updateError.message}`);
     }
 
+    console.log('Successfully cleared Square data from profile');
     return true;
   } catch (error) {
-    console.error('Error revoking Square token:', error);
+    console.error('Error in revokeSquareToken:', error);
     throw error;
   }
 }
