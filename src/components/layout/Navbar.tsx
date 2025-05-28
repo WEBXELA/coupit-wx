@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Target, User, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, X, Target, User, LogOut, ChevronDown, Unlink } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
+import { revokeSquareToken } from '../../lib/square';
 
 export function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [connectedAccount, setConnectedAccount] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,6 +29,28 @@ export function Navbar() {
       if (data?.square_merchant_id) {
         setConnectedAccount(data);
       }
+    }
+  };
+
+  const handleDisconnectSquare = async () => {
+    try {
+      setLoading(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Not authenticated');
+      }
+
+      await revokeSquareToken(user.id);
+      setConnectedAccount(null);
+      
+      // Refresh the page to update the UI
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error disconnecting Square account:', error);
+      alert('Failed to disconnect Square account: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,13 +84,13 @@ export function Navbar() {
             <Link to="/contact" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</Link>
             <Link to="/pricing" className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</Link>
             {!isAuthenticated ? (
-            <Link 
-              to="/square/onboarding" 
-              className="primary-button"
-            >
-              Get Started
-            </Link>
-            ) : connectedAccount && (
+              <Link 
+                to="/square/onboarding" 
+                className="primary-button"
+              >
+                Get Started
+              </Link>
+            ) : (
               <div className="relative group">
                 <button 
                   className="flex items-center gap-2 bg-white p-2 rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
@@ -81,15 +105,25 @@ export function Navbar() {
                 {/* Dropdown Menu */}
                 <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300">
                   <div className="p-4 border-b border-gray-100">
-                    <p className="font-medium text-[#2B2C30]">{connectedAccount.email}</p>
+                    <p className="font-medium text-[#2B2C30]">{connectedAccount?.email}</p>
                     <p className="text-sm text-gray-500">
-                      Merchant ID: {connectedAccount.square_merchant_id || 'Not available'}
+                      Merchant ID: {connectedAccount?.square_merchant_id || 'Not available'}
                     </p>
                     <p className="text-sm text-gray-500">
-                      Connected: {new Date(connectedAccount.square_token_expires_at).toLocaleString()}
+                      Connected: {connectedAccount?.square_token_expires_at ? new Date(connectedAccount.square_token_expires_at).toLocaleString() : 'Not connected'}
                     </p>
                   </div>
-                  <div className="p-2">
+                  <div className="p-2 space-y-1">
+                    {connectedAccount?.square_merchant_id && (
+                      <button
+                        onClick={handleDisconnectSquare}
+                        disabled={loading}
+                        className="w-full flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
+                      >
+                        <Unlink className="w-5 h-5" />
+                        {loading ? 'Disconnecting...' : 'Disconnect Square'}
+                      </button>
+                    )}
                     <button
                       onClick={handleLogout}
                       className="w-full flex items-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
@@ -119,7 +153,7 @@ export function Navbar() {
               <button onClick={() => handleNavigation('/contact')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Contact Us</button>
               <button onClick={() => handleNavigation('/pricing')} className="text-[#2B2C30] hover:text-[#1A1A1C] px-4 py-2">Pricing</button>
               {!isAuthenticated ? (
-              <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
+                <button onClick={() => handleNavigation('/square/onboarding')} className="primary-button w-full text-center">Get Started</button>
               ) : connectedAccount && (
                 <div className="bg-white p-4 rounded-lg shadow-lg">
                   <p className="font-medium text-[#2B2C30] mb-2">{connectedAccount.email}</p>
@@ -129,6 +163,16 @@ export function Navbar() {
                   <p className="text-sm text-gray-500 mb-4">
                     Connected: {new Date(connectedAccount.square_token_expires_at).toLocaleString()}
                   </p>
+                  {connectedAccount.square_merchant_id && (
+                    <button
+                      onClick={handleDisconnectSquare}
+                      disabled={loading}
+                      className="w-full flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200 mb-2"
+                    >
+                      <Unlink className="w-5 h-5" />
+                      {loading ? 'Disconnecting...' : 'Disconnect Square'}
+                    </button>
+                  )}
                   <button
                     onClick={handleLogout}
                     className="w-full flex items-center justify-center gap-2 text-red-600 hover:bg-red-50 p-2 rounded-lg transition-colors duration-200"
