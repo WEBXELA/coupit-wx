@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User, LogOut, ChevronDown } from 'lucide-react';
-import { makeSquareApiCall, checkSquareConnection } from '../lib/square';
+import { CheckCircle, XCircle, RefreshCw, Loader2, ArrowRight, User, LogOut, ChevronDown, Unlink } from 'lucide-react';
+import { makeSquareApiCall, checkSquareConnection, revokeSquareToken } from '../lib/square';
 
 interface SquareAccount {
   id: string;
@@ -143,6 +143,39 @@ export function SquareTest() {
     }
   };
 
+  const handleDisconnectSquare = async () => {
+    try {
+      setLoading(true);
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        throw new Error('Not authenticated');
+      }
+
+      await revokeSquareToken(user.id);
+      
+      // Refresh the connection status and accounts list
+      await checkConnectionStatus();
+      await fetchConnectedAccounts();
+      
+      setTestStatus({
+        loading: false,
+        success: true,
+        message: 'Successfully disconnected Square account',
+      });
+    } catch (error: any) {
+      console.error('Error disconnecting Square account:', error);
+      setTestStatus({
+        loading: false,
+        success: false,
+        message: 'Failed to disconnect Square account',
+        details: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       await supabase.auth.signOut();
@@ -237,6 +270,15 @@ export function SquareTest() {
                   <RefreshCw className="w-5 h-5" />
                   Refresh
                 </button>
+                {connectedAccounts.length > 0 && (
+                  <button
+                    onClick={handleDisconnectSquare}
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700"
+                  >
+                    <Unlink className="w-5 h-5" />
+                    Disconnect Square
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-2 text-red-600 hover:text-red-700"

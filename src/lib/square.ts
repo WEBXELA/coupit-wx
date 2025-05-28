@@ -178,3 +178,113 @@ export async function makeSquareApiCall(endpoint: string, options: SquareApiOpti
     throw error;
   }
 }
+
+export async function revokeSquareToken(userId: string, environment: SquareEnvironment = 'production') {
+  try {
+    // Get the current access token
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('square_access_token')
+      .eq('id', userId)
+      .single();
+
+    if (profileError || !profile?.square_access_token) {
+      throw new Error('No Square access token found');
+    }
+
+    // Revoke the token with Square
+    const baseUrl = environment === 'production' 
+      ? 'https://connect.squareup.com'
+      : 'https://connect.squareupsandbox.com';
+
+    const response = await fetch(`${baseUrl}/oauth2/revoke`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        client_id: SQUARE_CONFIG[environment].appId,
+        access_token: profile.square_access_token,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Failed to revoke token: ${JSON.stringify(errorData)}`);
+    }
+
+    // Clear Square-related data from the profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({
+        square_access_token: null,
+        square_refresh_token: null,
+        square_token_expires_at: null,
+        square_merchant_id: null,
+        square_environment: null,
+        square_connected_at: null,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error revoking Square token:', error);
+    throw error;
+  }
+}
+
+export async function checkSquareConnection(): Promise<{
+  isConnected: boolean;
+  error?: string;
+  merchantId?: string;
+  expiresAt?: string;
+}> {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('square_access_token, square_merchant_id, square_token_expires_at')
+      .eq('id', user.id)
+      .single();
+
+    if (profileError || !profile) {
+      throw new Error('Failed to fetch user profile');
+    }
+
+    if (!profile.square_access_token || !profile.square_merchant_id) {
+      return { isConnected: false };
+    }
+
+    // Check if token is expired
+    const tokenExpiresAt = new Date(profile.square_token_expires_at);
+    if (tokenExpiresAt.getTime() < Date.now()) {
+      return {
+        isConnected: false,
+        error: 'Square access token has expired',
+        merchantId: profile.square_merchant_id,
+        expiresAt: profile.square_token_expires_at
+      };
+    }
+
+    return {
+      isConnected: true,
+      merchantId: profile.square_merchant_id,
+      expiresAt: profile.square_token_expires_at
+    };
+  } catch (error) {
+    console.error('Error checking Square connection:', error);
+    return {
+      isConnected: false,
+      error: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+}
