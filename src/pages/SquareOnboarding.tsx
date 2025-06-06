@@ -98,7 +98,7 @@ export function SquareOnboarding() {
     const config = SQUARE_CONFIG[environment];
     const params = new URLSearchParams({
       client_id: SQUARE_APP_ID,
-      scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ PAYMENTS_WRITE ORDERS_READ ORDERS_WRITE CUSTOMERS_READ CUSTOMERS_WRITE ITEMS_READ ITEMS_WRITE INVENTORY_READ INVENTORY_WRITE',
+      scope: 'MERCHANT_PROFILE_READ PAYMENTS_READ',
       state: state,
       session: 'false',
       redirect_uri: config.redirectUri,
