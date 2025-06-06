@@ -86,6 +86,11 @@ export function SquareOnboarding() {
   };
 
   const handleSquareConnect = (environment: SquareEnvironment = 'production') => {
+    if (!session) {
+      setError('Please sign in or create an account before connecting Square');
+      return;
+    }
+
     if (!SQUARE_APP_ID) {
       setError('Square configuration is missing. Please contact support.');
       return;

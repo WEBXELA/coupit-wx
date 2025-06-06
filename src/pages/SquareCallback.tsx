@@ -14,6 +14,15 @@ export function SquareCallback() {
     const handleCallback = async () => {
       try {
         setLoading(true);
+        
+        // Check authentication first
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        if (userError || !user) {
+          setErrorMessage('Please sign in before connecting your Square account');
+          navigate('/square/onboarding');
+          return;
+        }
+
         const code = searchParams.get('code');
         const state = searchParams.get('state');
         const error = searchParams.get('error');
@@ -42,13 +51,6 @@ export function SquareCallback() {
 
         sessionStorage.removeItem('square_oauth_state');
         sessionStorage.removeItem('square_environment');
-
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
-        if (userError || !user) {
-          const errorMsg = 'User not authenticated - please log in again';
-          setErrorMessage(errorMsg);
-          return;
-        }
 
         const config = SQUARE_CONFIG[environment];
         const tokenResponse = await fetch(config.tokenUrl, {
@@ -111,9 +113,8 @@ export function SquareCallback() {
         sessionStorage.setItem('connected_merchant_id', tokenData.merchant_id);
         navigate('/square/success');
       } catch (error) {
-        const errorMsg = `Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`;
-        console.error('Error handling Square callback:', error);
-        setErrorMessage(errorMsg);
+        console.error('Error processing Square callback:', error);
+        setErrorMessage(error.message || 'An unexpected error occurred');
       } finally {
         setLoading(false);
       }
@@ -122,15 +123,23 @@ export function SquareCallback() {
     handleCallback();
   }, [searchParams, navigate]);
 
+  if (loading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      </div>
+    );
+  }
+
   if (errorMessage) {
     return (
-      <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center">
-        <div className="text-center max-w-md mx-4">
-          <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">Connection Error</h2>
-          <p className="text-gray-600 mb-6">{errorMessage}</p>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-red-600">Error</h2>
+          <p className="mt-2 text-gray-600">{errorMessage}</p>
           <button
             onClick={() => navigate('/square/onboarding')}
-            className="bg-[#2B2C30] text-white px-6 py-3 rounded-lg hover:bg-opacity-90"
+            className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Try Again
           </button>
@@ -139,13 +148,5 @@ export function SquareCallback() {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-[#f7f7f7] flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 text-[#2B2C30] animate-spin mx-auto mb-4" />
-        <h2 className="text-2xl font-bold text-[#2B2C30] mb-4">Connecting to Square...</h2>
-        <p className="text-gray-600">Please wait while we connect your Square account.</p>
-      </div>
-    </div>
-  );
+  return null;
 }
